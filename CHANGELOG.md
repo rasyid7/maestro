@@ -1,5 +1,33 @@
 # Changelog
 
+=== My Changes ===
+## 1.37.4 - 2024-07-29
+- [add sleep feature on maestro](https://github.com/rasyid7/maestro/commit/2a8575583af3aaf71de23c7def902db30041fa06)
+- [add upload-when-failed option for maestro record](https://github.com/rasyid7/maestro/commit/371f4163cf68de6f5ad5e767990164f2f558315b)
+`record --upload-when-failed`
+- [add auto-download option for maestro record](https://github.com/rasyid7/maestro/commit/371f4163cf68de6f5ad5e767990164f2f558315b)
+`record --auto-download`
+
+## 1.37.3 - 2024-07-23
+- fix race condition on android sharding
+
+## 1.37.2 - 2024-07-19
+- [fix tags include from OR to AND](https://github.com/rasyid7/maestro/commit/9949f1b204e86dedb3f2912ffdfa65cca2e6121f)
+
+## 1.37.1 - 2024-07-13
+- HOTFIX testSingle exit code return 1 for pass and 0 for failed
+
+## 1.37.0 - 2024-07-11
+- Feature: Add 'maestro.platform' for javascript to determine platform (mobile-dev-inc#1747)
+- Feature: add new test report format: HTML (mobile-dev-inc#1750)
+- Feature: [New Feature] Sharding / Parallel Execution (mobile-dev-inc#1732)
+- Feature: improve waitForAppToSettle to use waitToSettleTimeoutMs
+- Feature: android not wait for settle for faster commands
+- Feature: add timestamp for maestro log
+- Fix: Remove screen record time limit for Android devices running on API levels >= 34 (mobile-dev-inc#1683)
+
+=======
+
 ## 1.37.7
 
 Released on 2024-08-03

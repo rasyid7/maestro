@@ -182,7 +182,7 @@ class Maestro(private val driver: Driver) : AutoCloseable {
     ) {
         LOGGER.info("Tapping on element: ${tapRepeat ?: ""} $element")
 
-        val hierarchyBeforeTap = waitForAppToSettle(initialHierarchy, appId, waitToSettleTimeoutMs) ?: initialHierarchy
+        val hierarchyBeforeTap = initialHierarchy
 
         val center = (
                 hierarchyBeforeTap
@@ -350,6 +350,12 @@ class Maestro(private val driver: Driver) : AutoCloseable {
             } else {
                 driver.tap(Point(x, y))
             }
+
+            if (waitToSettleTimeoutMs != null && waitToSettleTimeoutMs < 100) {
+                LOGGER.info("waitToSettleTimeoutMs is less than 100, skip get hierarchy")
+                return
+            }
+
             val hierarchyAfterTap = waitForAppToSettle(waitToSettleTimeoutMs = waitToSettleTimeoutMs)
 
             if (hierarchyBeforeTap != hierarchyAfterTap) {
@@ -562,6 +568,12 @@ class Maestro(private val driver: Driver) : AutoCloseable {
         LOGGER.info("Waiting for animation to end with timeout $timeout")
 
         ScreenshotUtils.waitUntilScreenIsStatic(timeout, SCREENSHOT_DIFF_THRESHOLD, driver)
+    }
+
+    fun sleep(time: Long?) {
+        val time = time ?: ANIMATION_TIMEOUT_MS
+        LOGGER.info("Sleep for $time ms")
+        Thread.sleep(time)
     }
 
     fun setProxy(
