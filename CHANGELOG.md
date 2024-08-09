@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.37.8 - 2024-08-09
+- [randomize driverHostPort](https://github.com/rasyid7/maestro/commit/a4bce1ad2f2b7239b749df08a86be96f82001f43)
+- [session checker from any to contains](https://github.com/rasyid7/maestro/commit/a6cbea7da3c4fd7ad1aea271c3ba78c5c1eb9c1d)
+- [change version checker to own repo](https://github.com/rasyid7/maestro/commit/b2ecbd732e31fbcdfde25b76986761bcdd56ab64)
+
 === My Changes ===
 ## 1.37.4 - 2024-07-29
 - [add sleep feature on maestro](https://github.com/rasyid7/maestro/commit/2a8575583af3aaf71de23c7def902db30041fa06)
@@ -58,7 +63,7 @@ Released on 2024-07-29
 
 ### Bug fixes
 
-- Fix `FileNotFoundException: ~.maestro/sessions` ([#1843](https://github.com/mobile-dev-inc/maestro/pull/1843)) 
+- Fix `FileNotFoundException: ~.maestro/sessions` ([#1843](https://github.com/mobile-dev-inc/maestro/pull/1843))
 
 ## 1.37.2 - 2024-07-29
 
