@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.37.9 - 2024-08-14
+- HOTFIX [revert ios landscape](https://github.com/rasyid7/maestro/commit/ac0bb66d59aaae58e23dc33c079bf852664ddfaa)
+
 ## 1.37.8 - 2024-08-09
 - [randomize driverHostPort](https://github.com/rasyid7/maestro/commit/a4bce1ad2f2b7239b749df08a86be96f82001f43)
 - [session checker from any to contains](https://github.com/rasyid7/maestro/commit/a6cbea7da3c4fd7ad1aea271c3ba78c5c1eb9c1d)
