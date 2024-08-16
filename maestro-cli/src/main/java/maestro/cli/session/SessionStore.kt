@@ -61,7 +61,8 @@ object SessionStore {
         platform: Platform
     ): Boolean {
         synchronized(keyValueStore) {
-            return activeSessions().contains(key(sessionId, platform))
+            return activeSessions()
+                .any { it != key(sessionId, platform) }
         }
     }
 

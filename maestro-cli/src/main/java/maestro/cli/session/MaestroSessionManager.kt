@@ -60,6 +60,7 @@ object MaestroSessionManager {
         port: Int?,
         driverHostPort: Int?,
         deviceId: String?,
+        isParallel: Boolean = false,
         isStudio: Boolean = false,
         block: (MaestroSession) -> T,
     ): T {
@@ -87,7 +88,7 @@ object MaestroSessionManager {
 
         val session = createMaestro(
             selectedDevice = selectedDevice,
-            connectToExistingSession = SessionStore.hasActiveSessions(
+            connectToExistingSession = if (isParallel) false else SessionStore.hasActiveSessions(
                 sessionId,
                 selectedDevice.platform
             ),

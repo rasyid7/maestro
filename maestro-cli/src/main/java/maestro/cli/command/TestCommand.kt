@@ -129,6 +129,12 @@ class TestCommand : Callable<Int> {
     )
     private var excludeTags: List<String> = emptyList()
 
+    @Option(
+        names = ["--parallel"],
+        description = ["Option to run multiple maestro on same Workstation"]
+    )
+    private var parallel: Boolean = false
+
     @CommandLine.Spec
     lateinit var commandSpec: CommandLine.Model.CommandSpec
 
@@ -212,7 +218,8 @@ class TestCommand : Callable<Int> {
 
             val results = (0 until effectiveShards).map { shardIndex ->
                 async(Dispatchers.IO) {
-                    val driverHostPort = (7001..7128).shuffled().find { port ->
+                    val driverHostPort = if (!sharded && !parallel) parent?.port ?: 7001 else
+                        (7001..7128).shuffled().find { port ->
                             usedPorts.putIfAbsent(port, true) == null
                         } ?: error("No available ports found")
 
@@ -249,7 +256,8 @@ class TestCommand : Callable<Int> {
                         host = parent?.host,
                         port = parent?.port,
                         driverHostPort = driverHostPort,
-                        deviceId = deviceId
+                        deviceId = deviceId,
+                        isParallel = parallel
                     ) { session ->
                         val maestro = session.maestro
                         val device = session.device
