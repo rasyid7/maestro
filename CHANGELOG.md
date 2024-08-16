@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.37.10 - 2024-08-16
+- FIX [revert randomize driverHostPort and session checker, add --parallel param to run parallel](https://github.com/rasyid7/maestro/commit/3d291ee0145c9e925a3fa1702a26e49230b6ec03)
+
 ## 1.37.9 - 2024-08-14
 - HOTFIX [revert ios landscape](https://github.com/rasyid7/maestro/commit/ac0bb66d59aaae58e23dc33c079bf852664ddfaa)
 
