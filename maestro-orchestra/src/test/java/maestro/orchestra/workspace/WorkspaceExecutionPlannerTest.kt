@@ -249,7 +249,7 @@ internal class WorkspaceExecutionPlannerTest {
         // When
         val plan = WorkspaceExecutionPlanner.plan(
             input = paths("/workspaces/010_global_include_tags"),
-            includeTags = listOf("featureB"),
+            includeTags = listOf("featureA"),
             excludeTags = listOf(),
             config = null,
         )
