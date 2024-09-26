@@ -603,7 +603,8 @@ internal class MaestroCommandSerializationTest {
         val expectedJson = """
             {
               "sleepCommand" : {
-                "time" : 1000
+                "time" : 1000,
+                "optional" : false
               }
             }
           """.trimIndent()
