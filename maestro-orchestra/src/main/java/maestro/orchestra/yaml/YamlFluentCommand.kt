@@ -123,6 +123,7 @@ data class YamlFluentCommand(
     val setAirplaneMode: YamlSetAirplaneMode? = null,
     val toggleAirplaneMode: YamlToggleAirplaneMode? = null,
     val retry: YamlRetryCommand? = null,
+    val sleep: YamlSleepCommand? = null,
 ) {
 
     @SuppressWarnings("ComplexMethod")
@@ -1026,6 +1027,10 @@ data class YamlFluentCommand(
 
                 "assertNoDefectsWithAI" -> YamlFluentCommand(
                     assertNoDefectsWithAI = YamlAssertNoDefectsWithAI()
+                )
+
+                "sleep" -> YamlFluentCommand(
+                    sleep = YamlSleepCommand(time = null)
                 )
 
                 else -> throw SyntaxError("Invalid command: \"$stringCommand\"")
