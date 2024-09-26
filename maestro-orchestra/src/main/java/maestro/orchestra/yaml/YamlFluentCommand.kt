@@ -80,6 +80,7 @@ data class YamlFluentCommand(
     val setAirplaneMode: YamlSetAirplaneMode? = null,
     val toggleAirplaneMode: YamlToggleAirplaneMode? = null,
     val retry: YamlRetryCommand? = null,
+    val sleep: YamlSleepCommand? = null,
 ) {
 
     @SuppressWarnings("ComplexMethod")
@@ -255,8 +256,16 @@ data class YamlFluentCommand(
                 val tapRepeat = TapRepeat(2, delay)
                 listOf(tapCommand(doubleTapOn, tapRepeat = tapRepeat))
             }
-            setAirplaneMode != null -> listOf(MaestroCommand(SetAirplaneModeCommand(setAirplaneMode.value, setAirplaneMode.label, setAirplaneMode.optional)))
-            toggleAirplaneMode != null -> listOf(MaestroCommand(ToggleAirplaneModeCommand(toggleAirplaneMode.label, toggleAirplaneMode.optional)))
+            setAirplaneMode != null -> listOf(MaestroCommand(SetAirplaneModeCommand(setAirplaneMode.value, setAirplaneMode.label)))
+            toggleAirplaneMode != null -> listOf(MaestroCommand(ToggleAirplaneModeCommand(toggleAirplaneMode.label)))
+            sleep != null -> listOf(
+                MaestroCommand(
+                    SleepCommand(
+                        time = sleep.time,
+                        label = sleep.label
+                    )
+                )
+            )
             else -> throw SyntaxError("Invalid command: No mapping provided for $this")
         }
     }
@@ -775,6 +784,10 @@ data class YamlFluentCommand(
 
                 "assertNoDefectsWithAI" -> YamlFluentCommand(
                     assertNoDefectsWithAI = YamlAssertNoDefectsWithAI()
+                )
+
+                "sleep" -> YamlFluentCommand(
+                    sleep = YamlSleepCommand(time = null)
                 )
 
                 else -> throw SyntaxError("Invalid command: \"$stringCommand\"")
