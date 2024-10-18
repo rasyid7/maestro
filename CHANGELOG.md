@@ -39,6 +39,13 @@ Chores:
 
 === My Changes ===
 
+## 1.38.3
+
+Released on 2024-10-18
+
+- android waitToSettleTimeoutMs not wait for settle for faster commands
+
+=======
 ## 1.38.2
 
 Released on 2024-09-26
