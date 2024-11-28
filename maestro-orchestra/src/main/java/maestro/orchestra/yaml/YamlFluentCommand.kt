@@ -508,7 +508,7 @@ data class YamlFluentCommand(
 
     private fun swipeCommand(swipe: YamlSwipe): MaestroCommand {
         when (swipe) {
-            is YamlSwipeDirection -> return MaestroCommand(SwipeCommand(direction = swipe.direction, duration = swipe.duration, label = swipe.label, optional = swipe.optional))
+            is YamlSwipeDirection -> return MaestroCommand(SwipeCommand(direction = swipe.direction, duration = swipe.duration, label = swipe.label, optional = swipe.optional, waitToSettleTimeoutMs = swipe.waitToSettleTimeoutMs))
             is YamlCoordinateSwipe -> {
                 val start = swipe.start
                 val end = swipe.end
@@ -527,11 +527,11 @@ data class YamlFluentCommand(
                     }
                 endPoint = Point(endPoints[0], endPoints[1])
 
-                return MaestroCommand(SwipeCommand(startPoint = startPoint, endPoint = endPoint, duration = swipe.duration, label = swipe.label, optional = swipe.optional))
+                return MaestroCommand(SwipeCommand(startPoint = startPoint, endPoint = endPoint, duration = swipe.duration, label = swipe.label, optional = swipe.optional, waitToSettleTimeoutMs = swipe.waitToSettleTimeoutMs))
             }
             is YamlRelativeCoordinateSwipe -> {
                 return MaestroCommand(
-                    SwipeCommand(startRelative = swipe.start, endRelative = swipe.end, duration = swipe.duration, label = swipe.label, optional = swipe.optional)
+                    SwipeCommand(startRelative = swipe.start, endRelative = swipe.end, duration = swipe.duration, label = swipe.label, optional = swipe.optional, waitToSettleTimeoutMs = swipe.waitToSettleTimeoutMs)
                 )
             }
             is YamlSwipeElement -> return swipeElementCommand(swipe)
@@ -552,6 +552,7 @@ data class YamlFluentCommand(
                 duration = swipeElement.duration,
                 label = swipeElement.label,
                 optional = swipeElement.optional,
+                waitToSettleTimeoutMs = swipeElement.waitToSettleTimeoutMs
             )
         )
     }
@@ -634,6 +635,7 @@ data class YamlFluentCommand(
                 centerElement = yaml.centerElement,
                 label = yaml.label,
                 optional = yaml.optional,
+                waitToSettleTimeoutMs = yaml.waitToSettleTimeoutMs
             )
         )
     }
