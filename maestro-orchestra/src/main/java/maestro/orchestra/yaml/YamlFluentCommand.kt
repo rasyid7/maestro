@@ -418,7 +418,21 @@ data class YamlFluentCommand(
 
             scrollUntilVisible != null -> listOf(scrollUntilVisibleCommand(scrollUntilVisible))
             travel != null -> listOf(travelCommand(travel))
+<<<<<<< HEAD
             startRecording != null -> listOf(
+=======
+            startRecording != null -> listOf(MaestroCommand(StartRecordingCommand(startRecording.path, startRecording.label, startRecording.optional)))
+            stopRecording != null -> listOf(MaestroCommand(StopRecordingCommand(stopRecording.label, stopRecording.optional)))
+            doubleTapOn != null -> {
+                val yamlDelay = (doubleTapOn as? YamlElementSelector)?.delay?.toLong()
+                val delay = if (yamlDelay != null && yamlDelay >= 0) yamlDelay else TapOnElementCommand.DEFAULT_REPEAT_DELAY
+                val tapRepeat = TapRepeat(2, delay)
+                listOf(tapCommand(doubleTapOn, tapRepeat = tapRepeat))
+            }
+            setAirplaneMode != null -> listOf(MaestroCommand(SetAirplaneModeCommand(setAirplaneMode.value, setAirplaneMode.label, setAirplaneMode.optional)))
+            toggleAirplaneMode != null -> listOf(MaestroCommand(ToggleAirplaneModeCommand(toggleAirplaneMode.label, toggleAirplaneMode.optional)))
+            sleep != null -> listOf(
+>>>>>>> 7a403018 (fix airPlaneMode as existing)
                 MaestroCommand(
                     StartRecordingCommand(
                         startRecording.path,
