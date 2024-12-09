@@ -256,8 +256,8 @@ data class YamlFluentCommand(
                 val tapRepeat = TapRepeat(2, delay)
                 listOf(tapCommand(doubleTapOn, tapRepeat = tapRepeat))
             }
-            setAirplaneMode != null -> listOf(MaestroCommand(SetAirplaneModeCommand(setAirplaneMode.value, setAirplaneMode.label)))
-            toggleAirplaneMode != null -> listOf(MaestroCommand(ToggleAirplaneModeCommand(toggleAirplaneMode.label)))
+            setAirplaneMode != null -> listOf(MaestroCommand(SetAirplaneModeCommand(setAirplaneMode.value, setAirplaneMode.label, setAirplaneMode.optional)))
+            toggleAirplaneMode != null -> listOf(MaestroCommand(ToggleAirplaneModeCommand(toggleAirplaneMode.label, toggleAirplaneMode.optional)))
             sleep != null -> listOf(
                 MaestroCommand(
                     SleepCommand(
