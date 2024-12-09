@@ -112,7 +112,7 @@ data class MaestroCommand(
         addMediaCommand = command as? AddMediaCommand,
         setAirplaneModeCommand = command as? SetAirplaneModeCommand,
         toggleAirplaneModeCommand = command as? ToggleAirplaneModeCommand,
-        retryCommand = command as? RetryCommand
+        retryCommand = command as? RetryCommand,
         sleepCommand = command as? SleepCommand,
     )
 
