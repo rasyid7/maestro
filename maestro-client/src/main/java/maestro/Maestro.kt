@@ -191,7 +191,7 @@ class Maestro(
     ) {
         LOGGER.info("Tapping on element: ${tapRepeat ?: ""} $element")
 
-        val hierarchyBeforeTap = waitForAppToSettle(initialHierarchy, appId, waitToSettleTimeoutMs) ?: initialHierarchy
+        val hierarchyBeforeTap = initialHierarchy
 
         val center = (
                 hierarchyBeforeTap
@@ -325,6 +325,13 @@ class Maestro(
             } else {
                 runInterruptible(Dispatchers.IO) { driver.tap(Point(x, y)) }
             }
+
+            if (waitToSettleTimeoutMs != null && waitToSettleTimeoutMs < 150) {
+                LOGGER.info("waitToSettleTimeoutMs is less than 150, skip get hierarchy")
+                return
+            }
+
+
             val hierarchyAfterTap = waitForAppToSettle(waitToSettleTimeoutMs = waitToSettleTimeoutMs)
 
             if (hierarchyAfterTap == null || hierarchyBeforeTap != hierarchyAfterTap) {
@@ -366,6 +373,12 @@ class Maestro(
             } else {
                 runInterruptible(Dispatchers.IO) { driver.tap(Point(x, y)) }
             }
+
+            if (waitToSettleTimeoutMs != null && waitToSettleTimeoutMs < 150) {
+                LOGGER.info("waitToSettleTimeoutMs is less than 150, skip get hierarchy")
+                return
+            }
+
             val hierarchyAfterTap = waitForAppToSettle(waitToSettleTimeoutMs = waitToSettleTimeoutMs)
 
             if (hierarchyBeforeTap != hierarchyAfterTap) {
