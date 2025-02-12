@@ -83,7 +83,7 @@ class ApiClient(
     fun getLatestCliVersion(): CliVersion {
         val request = Request.Builder()
             .header("X-FRESH-INSTALL", if (!Analytics.hasRunBefore) "true" else "false")
-            .url("$baseUrl/maestro/version")
+            .url("https://raw.githubusercontent.com/rasyid7/maestro/main/version")
             .get()
             .build()
 
@@ -680,7 +680,8 @@ data class CliVersion(
         private val COMPARATOR = compareBy<CliVersion>({ it.major }, { it.minor }, { it.patch })
 
         fun parse(versionString: String): CliVersion? {
-            val parts = versionString.split('.')
+            val numericPart = versionString.split('-').first()
+            val parts = numericPart.split('.')
             if (parts.size != 3) return null
             val major = parts[0].toIntOrNull() ?: return null
             val minor = parts[1].toIntOrNull() ?: return null
