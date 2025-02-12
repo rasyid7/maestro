@@ -27,6 +27,7 @@ import maestro.ai.AI.Companion.AI_KEY_ENV_VAR
 import maestro.ai.Defect
 import maestro.ai.anthropic.Claude
 import maestro.ai.openai.OpenAI
+import maestro.ai.azure.AzureAI
 import maestro.ai.CloudAIPredictionEngine
 import maestro.ai.AIPredictionEngine
 import maestro.js.GraalJsEngine
@@ -260,6 +261,13 @@ class Orchestra(
         return if (modelName == null) OpenAI(apiKey = apiKey)
         else if (modelName.startsWith("gpt-")) OpenAI(apiKey = apiKey, defaultModel = modelName)
         else if (modelName.startsWith("claude-")) Claude(apiKey = apiKey, defaultModel = modelName)
+        else if (modelName.startsWith("azure-")) {
+            AzureAI(
+                azureFullUrl = System.getenv("AZURE_FULL_URL") ?: throw IllegalStateException("AZURE_FULL_URL env var is not set"),
+                apiKey = apiKey,
+                defaultModel = modelName.substringAfter("azure-"),
+            )
+        }
         else throw IllegalStateException("Unsupported AI model: $modelName")
     }
 
