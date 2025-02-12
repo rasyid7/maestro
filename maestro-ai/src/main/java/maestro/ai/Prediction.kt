@@ -4,6 +4,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import maestro.ai.openai.OpenAI
+import maestro.ai.azure.AzureAI
 
 @Serializable
 data class Defect(
@@ -131,7 +132,7 @@ object Prediction {
             identifier = "find-defects",
             imageDetail = "high",
             images = listOf(screen),
-            jsonSchema = if (aiClient is OpenAI) json.parseToJsonElement(askForDefectsSchema).jsonObject else null,
+            jsonSchema = if (aiClient is OpenAI) json.parseToJsonElement(askForDefectsSchema).jsonObject else if (aiClient is AzureAI) json.parseToJsonElement(askForDefectsSchema).jsonObject else null,
         )
 
         if (printRawResponse) {
@@ -213,7 +214,7 @@ object Prediction {
             identifier = "perform-assertion",
             imageDetail = "high",
             images = listOf(screen),
-            jsonSchema = if (aiClient is OpenAI) json.parseToJsonElement(askForDefectsSchema).jsonObject else null,
+            jsonSchema = if (aiClient is OpenAI) json.parseToJsonElement(askForDefectsSchema).jsonObject else if (aiClient is AzureAI) json.parseToJsonElement(askForDefectsSchema).jsonObject else null,
         )
 
         if (printRawResponse) {
@@ -263,7 +264,7 @@ object Prediction {
             identifier = "perform-assertion",
             imageDetail = "high",
             images = listOf(screen),
-            jsonSchema = if (aiClient is OpenAI) json.parseToJsonElement(extractTextSchema).jsonObject else null,
+            jsonSchema = if (aiClient is OpenAI) json.parseToJsonElement(askForDefectsSchema).jsonObject else if (aiClient is AzureAI) json.parseToJsonElement(askForDefectsSchema).jsonObject else null,
         )
 
         val response = json.decodeFromString<ExtractTextResponse>(aiResponse.response)
