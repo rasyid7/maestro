@@ -78,6 +78,7 @@ data class MaestroCommand(
     val assertDarkModeCommand: AssertDarkModeCommand? = null,
     val assertLightModeCommand: AssertLightModeCommand? = null,
     val retryCommand: RetryCommand? = null,
+    val sleepCommand: SleepCommand? = null,
     // @JsonIgnore: serializing would duplicate the full origin YAML on every command in the DB.
     @JsonIgnore val sourceInfo: SourceInfo? = null,
 ) {
@@ -131,7 +132,8 @@ data class MaestroCommand(
         toggleDarkModeCommand = command as? ToggleDarkModeCommand,
         assertDarkModeCommand = command as? AssertDarkModeCommand,
         assertLightModeCommand = command as? AssertLightModeCommand,
-        retryCommand = command as? RetryCommand
+        retryCommand = command as? RetryCommand,
+        sleepCommand = command as? SleepCommand,
     )
 
     fun asCommand(): Command? = when {
@@ -184,6 +186,7 @@ data class MaestroCommand(
         assertDarkModeCommand != null -> assertDarkModeCommand
         assertLightModeCommand != null -> assertLightModeCommand
         retryCommand != null -> retryCommand
+        sleepCommand != null -> sleepCommand
         else -> null
     }
 

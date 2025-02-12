@@ -176,6 +176,7 @@ internal val stringCommands = mapOf<String, (YamlFluentCommand) -> YamlFluentCom
     "assertDarkMode" to { it.copy(assertDarkMode = YamlAssertDarkMode()) },
     "assertLightMode" to { it.copy(assertLightMode = YamlAssertLightMode()) },
     "assertNoDefectsWithAI" to { it.copy(assertNoDefectsWithAI = YamlAssertNoDefectsWithAI()) },
+    "sleep" to { it.copy(sleep = YamlSleepCommand(time = null)) },
 )
 
 private val allCommands = (stringCommands.keys + objectCommands).distinct()

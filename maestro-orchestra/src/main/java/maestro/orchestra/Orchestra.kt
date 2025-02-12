@@ -447,6 +447,7 @@ class Orchestra(
             is AssertDarkModeCommand -> assertDarkMode(expected = true)
             is AssertLightModeCommand -> assertDarkMode(expected = false)
             is RetryCommand -> retryCommand(command, config)
+            is SleepCommand -> sleepCommand(command)
             else -> true
         }.also { mutating ->
             if (mutating) {
@@ -751,6 +752,11 @@ class Orchestra(
     private suspend fun waitForAnimationToEndCommand(command: WaitForAnimationToEndCommand): Boolean {
         maestro.waitForAnimationToEnd(command.timeout)
 
+        return true
+    }
+
+    private fun sleepCommand(command: SleepCommand): Boolean {
+        maestro.sleep(command.time)
         return true
     }
 
