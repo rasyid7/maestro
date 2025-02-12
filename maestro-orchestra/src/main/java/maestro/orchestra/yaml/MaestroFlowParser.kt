@@ -166,6 +166,7 @@ private val stringCommands = mapOf<String, (YamlFluentCommand) -> YamlFluentComm
     "stopRecording" to { it.copy(stopRecording = YamlStopRecording()) },
     "toggleAirplaneMode" to { it.copy(toggleAirplaneMode = YamlToggleAirplaneMode()) },
     "assertNoDefectsWithAI" to { it.copy(assertNoDefectsWithAI = YamlAssertNoDefectsWithAI()) },
+    "sleep" to { it.copy(sleep = YamlSleepCommand(time = null)) },
 )
 
 private val allCommands = (stringCommands.keys + objectCommands).distinct()
