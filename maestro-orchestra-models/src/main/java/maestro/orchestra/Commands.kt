@@ -881,6 +881,19 @@ data class WaitForAnimationToEndCommand(
     }
 }
 
+data class SleepCommand(
+    val time: Long?,
+    override val label: String? = null,
+    override val optional: Boolean = false,
+) : Command {
+    override fun description(): String {
+        return label ?: "Sleep for $time ms"
+    }
+    override fun evaluateScripts(jsEngine: JsEngine): Command {
+        return this
+    }
+}
+
 data class EvalScriptCommand(
     val scriptString: String,
     override val label: String? = null,

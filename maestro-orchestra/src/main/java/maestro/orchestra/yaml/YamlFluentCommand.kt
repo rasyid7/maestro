@@ -65,6 +65,7 @@ import maestro.orchestra.TakeScreenshotCommand
 import maestro.orchestra.TapOnElementCommand
 import maestro.orchestra.TapOnPointV2Command
 import maestro.orchestra.ToggleAirplaneModeCommand
+import maestro.orchestra.SleepCommand
 import maestro.orchestra.TravelCommand
 import maestro.orchestra.WaitForAnimationToEndCommand
 import maestro.orchestra.error.InvalidFlowFile
@@ -129,6 +130,7 @@ data class YamlFluentCommand(
     val setAirplaneMode: YamlSetAirplaneMode? = null,
     val toggleAirplaneMode: YamlToggleAirplaneMode? = null,
     val retry: YamlRetryCommand? = null,
+    val sleep: YamlSleepCommand? = null,
     @JsonIgnore val _location: JsonLocation,
 ) {
 
@@ -474,6 +476,15 @@ data class YamlFluentCommand(
                     ToggleAirplaneModeCommand(
                         toggleAirplaneMode.label,
                         toggleAirplaneMode.optional
+                    )
+                )
+            )
+
+            sleep != null -> listOf(
+                MaestroCommand(
+                    SleepCommand(
+                        time = sleep.time,
+                        label = sleep.label
                     )
                 )
             )
@@ -954,5 +965,102 @@ data class YamlFluentCommand(
             scriptCondition = `true`?.trim(),
             label = label
         )
+    }
+
+    companion object {
+
+        @Suppress("unused")
+        @JvmStatic
+        @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+        fun parse(stringCommand: String): YamlFluentCommand {
+            return when (stringCommand) {
+                "launchApp" -> YamlFluentCommand(
+                    launchApp = YamlLaunchApp(
+                        appId = null,
+                        clearState = null,
+                        clearKeychain = null,
+                        stopApp = null,
+                        permissions = null,
+                        arguments = null,
+                    )
+                )
+
+                "stopApp" -> YamlFluentCommand(
+                    stopApp = YamlStopApp()
+                )
+
+                "killApp" -> YamlFluentCommand(
+                    killApp = YamlKillApp()
+                )
+
+                "clearState" -> YamlFluentCommand(
+                    clearState = YamlClearState(
+                        appId = null,
+                    )
+                )
+
+                "clearKeychain" -> YamlFluentCommand(
+                    clearKeychain = YamlActionClearKeychain(),
+                )
+
+                "eraseText" -> YamlFluentCommand(
+                    eraseText = YamlEraseText(charactersToErase = null)
+                )
+
+                "inputRandomText" -> YamlFluentCommand(
+                    inputRandomText = YamlInputRandomText(length = 8),
+                )
+
+                "inputRandomNumber" -> YamlFluentCommand(
+                    inputRandomNumber = YamlInputRandomNumber(length = 8),
+                )
+
+                "inputRandomEmail" -> YamlFluentCommand(
+                    inputRandomEmail = YamlInputRandomEmail(),
+                )
+
+                "inputRandomPersonName" -> YamlFluentCommand(
+                    inputRandomPersonName = YamlInputRandomPersonName(),
+                )
+
+                "back" -> YamlFluentCommand(
+                    back = YamlActionBack(),
+                )
+
+                "hide keyboard", "hideKeyboard" -> YamlFluentCommand(
+                    hideKeyboard = YamlActionHideKeyboard(),
+                )
+
+                "pasteText" -> YamlFluentCommand(
+                    pasteText = YamlActionPasteText(),
+                )
+
+                "scroll" -> YamlFluentCommand(
+                    scroll = YamlActionScroll(),
+                )
+
+                "waitForAnimationToEnd" -> YamlFluentCommand(
+                    waitForAnimationToEnd = YamlWaitForAnimationToEndCommand(timeout = null)
+                )
+
+                "stopRecording" -> YamlFluentCommand(
+                    stopRecording = YamlStopRecording()
+                )
+
+                "toggleAirplaneMode" -> YamlFluentCommand(
+                    toggleAirplaneMode = YamlToggleAirplaneMode()
+                )
+
+                "assertNoDefectsWithAI" -> YamlFluentCommand(
+                    assertNoDefectsWithAI = YamlAssertNoDefectsWithAI()
+                )
+
+                "sleep" -> YamlFluentCommand(
+                    sleep = YamlSleepCommand(time = null)
+                )
+
+                else -> throw SyntaxError("Invalid command: \"$stringCommand\"")
+            }
+        }
     }
 }
