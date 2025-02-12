@@ -19,6 +19,14 @@ Flows run on any emulator, simulator, browser, or physical Android device. Physi
   <img src="assets/twitch2-small.gif" alt="A Maestro flow in plain YAML running on the Twitch Android app in an emulator" width="760" />
 </p>
 
+> [!NOTE]
+>
+> **Full documentation for Maestro can be found at [docs.maestro.dev](https://docs.maestro.dev)**
+>
+> Since this is forked REPO, to install this maestro, please use
+>
+> `curl -Ls "https://raw.githubusercontent.com/rasyid7/maestro/main/scripts/install.sh" | bash`
+
 &nbsp;
 
 ## Table of Contents
