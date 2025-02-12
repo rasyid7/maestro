@@ -14,6 +14,14 @@
   Write your first test in under five minutes using YAML flows and run them on any emulator, simulator, or browser.
 </p>
 
+> [!NOTE]
+>
+> **Full documentation for Maestro can be found at [maestro.mobile.dev](https://maestro.mobile.dev)**
+>
+> Since this is forked REPO, to install this maestro, please use
+>
+> `curl -Ls "https://raw.githubusercontent.com/rasyid7/maestro/main/scripts/install.sh" | bash`
+
 <img src="https://user-images.githubusercontent.com/847683/187275009-ddbdf963-ce1d-4e07-ac08-b10f145e8894.gif" />
 
 ---
@@ -36,9 +44,9 @@ Maestro is built on learnings from its predecessors (Appium, Espresso, UIAutomat
 
 By combining a human-readable YAML syntax with an interpreted execution engine, it lets you write, run, and scale cross-platform end-to-end tests for mobile and web with ease.
 
-- **Cross-platform coverage** – test Android, iOS, and web apps (React Native, Flutter, hybrid) on emulators, simulators, or real devices.  
-- **Human-readable YAML flows** – express interactions as commands like `launchApp`, `tapOn`, and `assertVisible`.  
-- **Resilience & smart waiting** – built-in flakiness tolerance and automatic waiting handle dynamic UIs without manual `sleep()` calls.  
+- **Cross-platform coverage** – test Android, iOS, and web apps (React Native, Flutter, hybrid) on emulators, simulators, or real devices.
+- **Human-readable YAML flows** – express interactions as commands like `launchApp`, `tapOn`, and `assertVisible`.
+- **Resilience & smart waiting** – built-in flakiness tolerance and automatic waiting handle dynamic UIs without manual `sleep()` calls.
 - **Fast iteration & simple install** – flows are interpreted (no compilation) and installation is a single script.
 
 **Simple Example:**
@@ -86,8 +94,8 @@ The links below will guide you through the next steps.
 ## Resources & Community
 
 - 💬 [Join the Slack Community](https://maestrodev.typeform.com/to/FelIEe8A)
-- 📘 [Documentation](https://docs.maestro.dev)  
-- 📰 [Blog](https://maestro.dev/blog?utm_source=github-readme) 
+- 📘 [Documentation](https://docs.maestro.dev)
+- 📰 [Blog](https://maestro.dev/blog?utm_source=github-readme)
 - 🐦 [Follow us on X](https://twitter.com/maestro__dev)
 
 ---
@@ -97,7 +105,7 @@ The links below will guide you through the next steps.
 Maestro is open-source under the Apache 2.0 license — contributions are welcome!
 
 - Check [good first issues](https://github.com/mobile-dev-inc/maestro/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22)
-- Read the [Contribution Guide](https://github.com/mobile-dev-inc/Maestro/blob/main/CONTRIBUTING.md) 
+- Read the [Contribution Guide](https://github.com/mobile-dev-inc/Maestro/blob/main/CONTRIBUTING.md)
 - Fork, create a branch, and open a Pull Request.
 
 If you find Maestro useful, ⭐ star the repository to support the project.
@@ -106,11 +114,11 @@ If you find Maestro useful, ⭐ star the repository to support the project.
 
 ## Maestro Studio – Test IDE
 
-**Maestro Studio Desktop** is a lightweight IDE that lets you design and execute tests visually — no terminal needed. 
+**Maestro Studio Desktop** is a lightweight IDE that lets you design and execute tests visually — no terminal needed.
 It is also free, even though Studio is not an open-source project. So you won't find the Maestro Studio code here.
 
-- **Simple setup** – just download the native app for macOS, Windows, or Linux.  
-- **Visual flow builder & inspector** – record interactions, inspect elements, and build flows visually.  
+- **Simple setup** – just download the native app for macOS, Windows, or Linux.
+- **Visual flow builder & inspector** – record interactions, inspect elements, and build flows visually.
 - **AI assistance** – use MaestroGPT to generate commands and answer questions while authoring tests.
 
 [Download Maestro Studio](https://maestro.dev/?utm_source=github-readme#maestro-studio)
