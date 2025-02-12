@@ -20,19 +20,12 @@
 package maestro.orchestra
 
 import kotlinx.coroutines.runBlocking
-import maestro.Driver
-import maestro.ElementFilter
-import maestro.Filters
+import maestro.*
 import maestro.Filters.asFilter
-import maestro.FindElementResult
-import maestro.Maestro
-import maestro.MaestroException
-import maestro.ScreenRecording
-import maestro.ViewHierarchy
 import maestro.ai.AI
 import maestro.ai.AI.Companion.AI_KEY_ENV_VAR
+import maestro.ai.Defect
 import maestro.ai.anthropic.Claude
-import maestro.ai.cloud.Defect
 import maestro.ai.openai.OpenAI
 import maestro.ai.CloudAIPredictionEngine
 import maestro.ai.AIPredictionEngine
@@ -45,7 +38,6 @@ import maestro.orchestra.filter.TraitFilters
 import maestro.orchestra.geo.Traveller
 import maestro.orchestra.util.Env.evaluateScripts
 import maestro.orchestra.yaml.YamlCommandReader
-import maestro.toSwipeDirection
 import maestro.utils.Insight
 import maestro.utils.Insights
 import maestro.utils.MaestroTimer
@@ -369,7 +361,7 @@ class Orchestra(
         val timeout = (command.timeoutMs() ?: lookupTimeoutMs)
         val debugMessage = """
             Assertion '${command.condition.description()}' failed. Check the UI hierarchy in debug artifacts to verify the element state and properties.
-            
+
             Possible causes:
             - Element selector may be incorrect - check if there are similar elements with slightly different names/properties.
             - Element may be temporarily unavailable due to loading state
@@ -386,9 +378,11 @@ class Orchestra(
         return false
     }
 
-    private fun assertNoDefectsWithAICommand(command: AssertNoDefectsWithAICommand, maestroCommand: MaestroCommand): Boolean = runBlocking {
-        if (AIPredictionEngine == null) {
-            throw MaestroException.CloudApiKeyNotAvailable("`MAESTRO_CLOUD_API_KEY` is not available. Did you export MAESTRO_CLOUD_API_KEY?")
+    private fun assertNoDefectsWithAICommand(command: AssertNoDefectsWithAICommand): Boolean = runBlocking {
+        // TODO(bartekpacia): make all of Orchestra suspending
+
+        if (ai == null) {
+            throw MaestroException.AINotAvailable("AI client is not available. Did you export $AI_KEY_ENV_VAR?")
         }
 
         val metadata = getMetadata(maestroCommand)
@@ -396,7 +390,8 @@ class Orchestra(
         val imageData = Buffer()
         maestro.takeScreenshot(imageData, compressed = false)
 
-        val defects = AIPredictionEngine.findDefects(
+        val defects = Prediction.findDefects(
+            aiClient = ai,
             screen = imageData.copy().readByteArray(),
         )
 
@@ -405,9 +400,9 @@ class Orchestra(
 
             val word = if (defects.size == 1) "defect" else "defects"
             val reasoning = "Found ${defects.size} possible $word:\n${defects.joinToString("\n") { "- ${it.reasoning}" }}"
-            
+
             updateMetadata(maestroCommand, metadata.copy(aiReasoning = reasoning))
-            
+
 
             throw MaestroException.AssertionFailure(
                 message = """
@@ -422,23 +417,27 @@ class Orchestra(
         false
     }
 
-    private fun assertWithAICommand(command: AssertWithAICommand, maestroCommand: MaestroCommand): Boolean = runBlocking {
-        if (AIPredictionEngine == null) {
-            throw MaestroException.CloudApiKeyNotAvailable("`MAESTRO_CLOUD_API_KEY` is not available. Did you export MAESTRO_CLOUD_API_KEY?")
+    private fun assertWithAICommand(command: AssertWithAICommand): Boolean = runBlocking {
+        // TODO(bartekpacia): make all of Orchestra suspending
+
+        if (ai == null) {
+            throw MaestroException.AINotAvailable("AI client is not available. Did you export $AI_KEY_ENV_VAR?")
         }
 
         val metadata = getMetadata(maestroCommand)
 
         val imageData = Buffer()
         maestro.takeScreenshot(imageData, compressed = false)
-        val defect = AIPredictionEngine.performAssertion(
+
+        val defect = Prediction.performAssertion(
+            aiClient = ai,
             screen = imageData.copy().readByteArray(),
             assertion = command.assertion,
         )
 
         if (defect != null) {
             onCommandGeneratedOutput(command, listOf(defect), imageData)
-            
+
             val reasoning = "Assertion \"${command.assertion}\" failed:\n${defect.reasoning}"
             updateMetadata(maestroCommand, metadata.copy(aiReasoning = reasoning))
 
@@ -454,16 +453,19 @@ class Orchestra(
         false
     }
 
-    private fun extractTextWithAICommand(command: ExtractTextWithAICommand, maestroCommand: MaestroCommand): Boolean = runBlocking {
-        if (AIPredictionEngine == null) {
-            throw MaestroException.CloudApiKeyNotAvailable("`MAESTRO_CLOUD_API_KEY` is not available. Did you export MAESTRO_CLOUD_API_KEY?")
+    private fun extractTextWithAICommand(command: ExtractTextWithAICommand): Boolean = runBlocking {
+        // Extract text from the screen using AI
+        if (ai == null) {
+            throw MaestroException.AINotAvailable("AI client is not available. Did you export $AI_KEY_ENV_VAR?")
         }
 
         val metadata = getMetadata(maestroCommand)
 
         val imageData = Buffer()
         maestro.takeScreenshot(imageData, compressed = false)
-        val text = AIPredictionEngine.extractText(
+
+        val text = Prediction.extractText(
+            aiClient = ai,
             screen = imageData.copy().readByteArray(),
             query = command.query,
         )
@@ -1082,7 +1084,7 @@ class Orchestra(
         val (description, filterFunc) = buildFilter(selector = selector)
         val debugMessage = """
             Element with $description not found. Check the UI hierarchy in debug artifacts to verify if the element exists.
-            
+
             Possible causes:
             - Element selector may be incorrect - check if there are similar elements with slightly different names/properties.
             - Element may be temporarily unavailable due to loading state.
@@ -1107,7 +1109,7 @@ class Orchestra(
 
         val exceptionDebugMessage = """
             Element with $description not found. Check the UI hierarchy in debug artifacts to verify if the element exists.
-            
+
             Possible causes:
             - Element selector may be incorrect - check if there are similar elements with slightly different names/properties.
             - Element may be temporarily unavailable due to loading state.
@@ -1134,7 +1136,7 @@ class Orchestra(
         val (description, filterFunc) = buildFilter(selector = selector)
         val debugMessage = """
             Element with $description not found. Check the UI hierarchy in debug artifacts to verify if the element exists.
-            
+
             Possible causes:
             - Element selector may be incorrect - check if there are similar elements with slightly different names/properties.
             - Element may be temporarily unavailable due to loading state.
