@@ -64,6 +64,7 @@ import maestro.orchestra.TakeScreenshotCommand
 import maestro.orchestra.TapOnElementCommand
 import maestro.orchestra.TapOnPointV2Command
 import maestro.orchestra.ToggleAirplaneModeCommand
+import maestro.orchestra.SleepCommand
 import maestro.orchestra.TravelCommand
 import maestro.orchestra.WaitForAnimationToEndCommand
 import maestro.orchestra.error.InvalidFlowFile
@@ -123,6 +124,7 @@ data class YamlFluentCommand(
     val setAirplaneMode: YamlSetAirplaneMode? = null,
     val toggleAirplaneMode: YamlToggleAirplaneMode? = null,
     val retry: YamlRetryCommand? = null,
+    val sleep: YamlSleepCommand? = null,
 ) {
 
     @SuppressWarnings("ComplexMethod")
@@ -459,6 +461,15 @@ data class YamlFluentCommand(
                     ToggleAirplaneModeCommand(
                         toggleAirplaneMode.label,
                         toggleAirplaneMode.optional
+                    )
+                )
+            )
+
+            sleep != null -> listOf(
+                MaestroCommand(
+                    SleepCommand(
+                        time = sleep.time,
+                        label = sleep.label
                     )
                 )
             )
@@ -1026,6 +1037,10 @@ data class YamlFluentCommand(
 
                 "assertNoDefectsWithAI" -> YamlFluentCommand(
                     assertNoDefectsWithAI = YamlAssertNoDefectsWithAI()
+                )
+
+                "sleep" -> YamlFluentCommand(
+                    sleep = YamlSleepCommand(time = null)
                 )
 
                 else -> throw SyntaxError("Invalid command: \"$stringCommand\"")
