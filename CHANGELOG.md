@@ -2,6 +2,9 @@
 
 ## Custom
 
+## 1.40.2
+- fix ai response parsing
+
 ## 1.40.1
 
 - Feature: Add support for Azure OpenAI
