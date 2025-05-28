@@ -54,6 +54,18 @@ object Prediction {
 
     private val allDefectCategories = defectCategories + listOf("assertion" to "The assertion is not true")
 
+    /**
+     * Cleans AI response by removing markdown code block formatting
+     */
+    private fun cleanJsonResponse(response: String): String {
+        return response
+            .trim()
+            .removePrefix("```json")
+            .removePrefix("```")
+            .removeSuffix("```")
+            .trim()
+    }
+
     suspend fun findDefects(
         aiClient: AI,
         screen: ByteArray,
@@ -141,7 +153,8 @@ object Prediction {
             println("--- RAW RESPONSE END ---")
         }
 
-        val defects = json.decodeFromString<AskForDefectsResponse>(aiResponse.response)
+        val cleanedResponse = cleanJsonResponse(aiResponse.response)
+        val defects = json.decodeFromString<AskForDefectsResponse>(cleanedResponse)
         return defects.defects
     }
 
@@ -223,7 +236,8 @@ object Prediction {
             println("--- RAW RESPONSE END ---")
         }
 
-        val response = json.decodeFromString<AskForDefectsResponse>(aiResponse.response)
+        val cleanedResponse = cleanJsonResponse(aiResponse.response)
+        val response = json.decodeFromString<AskForDefectsResponse>(cleanedResponse)
         return response.defects.firstOrNull()
     }
 
@@ -267,7 +281,8 @@ object Prediction {
             jsonSchema = if (aiClient is OpenAI) json.parseToJsonElement(askForDefectsSchema).jsonObject else if (aiClient is AzureAI) json.parseToJsonElement(askForDefectsSchema).jsonObject else null,
         )
 
-        val response = json.decodeFromString<ExtractTextResponse>(aiResponse.response)
+        val cleanedResponse = cleanJsonResponse(aiResponse.response)
+        val response = json.decodeFromString<ExtractTextResponse>(cleanedResponse)
         return response.text ?: ""
     }
 
