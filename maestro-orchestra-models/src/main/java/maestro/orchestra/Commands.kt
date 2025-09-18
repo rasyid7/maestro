@@ -916,6 +916,20 @@ data class WaitForAnimationToEndCommand(
     }
 }
 
+data class SleepCommand(
+    val time: Long?,
+    override val label: String? = null,
+    override val optional: Boolean = false,
+) : Command {
+
+    override val originalDescription: String
+        get() = "Sleep for $time ms"
+
+    override fun evaluateScripts(jsEngine: JsEngine): Command {
+        return this
+    }
+}
+
 data class EvalScriptCommand(
     val scriptString: String,
     override val label: String? = null,
@@ -1055,6 +1069,19 @@ data class ToggleAirplaneModeCommand(
 ) : Command {
     override val originalDescription: String
         get() = "Toggle airplane mode"
+
+    override fun evaluateScripts(jsEngine: JsEngine): Command {
+        return this
+    }
+}
+
+data class BrowserAlertCommand(
+    val action: maestro.BrowserAlertAction,
+    override val label: String? = null,
+    override val optional: Boolean = false,
+) : Command {
+    override val originalDescription: String
+        get() = "Handle browser alert with ${action.name.lowercase()}"
 
     override fun evaluateScripts(jsEngine: JsEngine): Command {
         return this
