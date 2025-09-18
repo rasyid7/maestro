@@ -61,6 +61,12 @@ class CdpWebDriver(
     private var injectedArguments: Map<String, Any> = emptyMap()
 
     private var webScreenRecorder: WebScreenRecorder? = null
+    private var browserAlertAction: maestro.BrowserAlertAction? = null
+
+    override fun setBrowserAlertAction(action: maestro.BrowserAlertAction?) {
+        this.browserAlertAction = action
+    }
+
 
     init {
         Maestro::class.java.getResourceAsStream("/maestro-web.js")?.let {
@@ -360,6 +366,20 @@ class CdpWebDriver(
         // Do nothing
     }
 
+    private fun handleAlert() {
+        browserAlertAction?.let {
+            try {
+                val alert = ensureOpen().switchTo().alert()
+                when (it) {
+                    maestro.BrowserAlertAction.ACCEPT -> alert.accept()
+                    maestro.BrowserAlertAction.DISMISS -> alert.dismiss()
+                }
+            } catch (e: org.openqa.selenium.NoAlertPresentException) {
+                // No alert was present, ignore.
+            }
+        }
+    }
+
     override fun tap(point: Point) {
         val driver = ensureOpen()
 
@@ -384,6 +404,8 @@ class CdpWebDriver(
         (driver as RemoteWebDriver).perform(listOf(actions))
 
         Actions(driver).click().build().perform()
+
+        handleAlert()
     }
 
     private fun tapOnSyntheticCoordinateSpace(point: Point) {

@@ -382,6 +382,7 @@ class Orchestra(
             is ToggleAirplaneModeCommand -> toggleAirplaneMode()
             is RetryCommand -> retryCommand(command, config)
             is SleepCommand -> sleepCommand(command)
+            is BrowserAlertCommand -> browserAlertCommand(command)
             else -> true
         }.also { mutating ->
             if (mutating) {
@@ -666,6 +667,11 @@ class Orchestra(
     private fun sleepCommand(command: SleepCommand): Boolean {
         maestro.sleep(command.time)
         return true
+    }
+
+    private fun browserAlertCommand(command: BrowserAlertCommand): Boolean {
+        maestro.setBrowserAlertAction(command.action)
+        return false
     }
 
     private fun defineVariablesCommand(command: DefineVariablesCommand): Boolean {
