@@ -103,6 +103,8 @@ interface Driver {
 
     fun setAirplaneMode(enabled: Boolean)
 
+    fun setBrowserAlertAction(action: maestro.BrowserAlertAction?) { /* no-op */ }
+
     fun setAndroidChromeDevToolsEnabled(enabled: Boolean) = Unit
 
     fun queryOnDeviceElements(query: OnDeviceElementQuery): List<TreeNode> {
