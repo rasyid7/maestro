@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.google.common.truth.Truth.assertThat
+import maestro.BrowserAlertAction
 import maestro.device.DeviceOrientation
 import maestro.KeyCode
 import maestro.Point
@@ -716,6 +717,36 @@ internal class MaestroCommandSerializationTest {
               }
             }
           """.trimIndent()
+        assertThat(serializedCommandJson)
+            .isEqualTo(expectedJson)
+        assertThat(deserializedCommand)
+            .isEqualTo(command)
+    }
+
+    @Test
+    fun `serialize BrowserAlertCommand`() {
+        // given
+        val command = MaestroCommand(
+            BrowserAlertCommand(
+                action = BrowserAlertAction.ACCEPT
+            )
+        )
+
+        // when
+        val serializedCommandJson = command.toJson()
+        val deserializedCommand = objectMapper.readValue(serializedCommandJson, MaestroCommand::class.java)
+
+        // then
+        @Language("json")
+        val expectedJson = """
+            {
+              "browserAlertCommand" : {
+                "action" : "ACCEPT",
+                "optional" : false
+              }
+            }
+          """.trimIndent()
+
         assertThat(serializedCommandJson)
             .isEqualTo(expectedJson)
         assertThat(deserializedCommand)
