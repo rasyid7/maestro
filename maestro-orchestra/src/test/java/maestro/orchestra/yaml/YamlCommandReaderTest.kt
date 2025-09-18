@@ -6,6 +6,7 @@ import maestro.Point
 import maestro.ScrollDirection
 import maestro.SwipeDirection
 import maestro.TapRepeat
+import maestro.BrowserAlertAction
 import maestro.device.DeviceOrientation
 import maestro.orchestra.AddMediaCommand
 import maestro.orchestra.AirplaneValue
@@ -15,6 +16,7 @@ import maestro.orchestra.AssertDarkModeCommand
 import maestro.orchestra.AssertLightModeCommand
 import maestro.orchestra.AssertScreenshotCommand
 import maestro.orchestra.BackPressCommand
+import maestro.orchestra.BrowserAlertCommand
 import maestro.orchestra.ClearKeychainCommand
 import maestro.orchestra.ClearStateCommand
 import maestro.orchestra.Command
@@ -1016,4 +1018,21 @@ internal class YamlCommandReaderTest {
 
     private fun commands(vararg commands: Command): List<MaestroCommand> =
         commands.map(::MaestroCommand).toList()
+
+    @Test
+    fun browserAlert(@YamlFile("browser_alert.yaml") commands: List<Command>) {
+        assertThat(commands).containsExactly(
+            ApplyConfigurationCommand(
+                MaestroConfig(
+                    appId = "com.example.app"
+                )
+            ),
+            maestro.orchestra.BrowserAlertCommand(
+                action = maestro.BrowserAlertAction.ACCEPT
+            ),
+            maestro.orchestra.BrowserAlertCommand(
+                action = maestro.BrowserAlertAction.DISMISS
+            ),
+        )
+    }
 }

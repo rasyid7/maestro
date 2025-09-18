@@ -1293,6 +1293,19 @@ data class AssertLightModeCommand(
     }
 }
 
+data class BrowserAlertCommand(
+    val action: maestro.BrowserAlertAction,
+    override val label: String? = null,
+    override val optional: Boolean = false,
+) : Command {
+    override val originalDescription: String
+        get() = "Handle browser alert with ${action.name.lowercase()}"
+
+    override fun evaluateScripts(jsEngine: JsEngine): Command {
+        return this
+    }
+}
+
 internal fun tapOnDescription(isLongPress: Boolean?, repeat: TapRepeat?): String {
     return if (isLongPress == true) "Long press"
     else if (repeat != null) {
