@@ -671,6 +671,10 @@ class Maestro(
         driver.setAndroidChromeDevToolsEnabled(enabled)
     }
 
+    fun setBrowserAlertAction(action: maestro.BrowserAlertAction?) {
+        driver.setBrowserAlertAction(action)
+    }
+
     companion object {
 
         private val LOGGER = LoggerFactory.getLogger(Maestro::class.java)
