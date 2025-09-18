@@ -138,6 +138,7 @@ data class YamlFluentCommand(
     val toggleAirplaneMode: YamlToggleAirplaneMode? = null,
     val retry: YamlRetryCommand? = null,
     val sleep: YamlSleepCommand? = null,
+    val browserAlert: String? = null,
     @JsonIgnore val _location: JsonLocation,
 ) {
 
@@ -458,6 +459,14 @@ data class YamlFluentCommand(
                     SleepCommand(
                         time = sleep.time,
                         label = sleep.label
+                    )
+                )
+            )
+
+            browserAlert != null -> listOf(
+                MaestroCommand(
+                    maestro.orchestra.BrowserAlertCommand(
+                        action = maestro.BrowserAlertAction.valueOf(browserAlert.uppercase())
                     )
                 )
             )
