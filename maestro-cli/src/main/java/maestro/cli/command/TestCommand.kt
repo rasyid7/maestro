@@ -213,7 +213,7 @@ class TestCommand : Callable<Int> {
         if(plan.flowsToRun.isEmpty() && plan.sequence.flows.isEmpty()) return false
         return (plan.flowsToRun.all { it.toFile().isWebFlow() } && plan.sequence.flows.all { it.toFile().isWebFlow() })
     }
-  
+
     override fun call(): Int {
         TestDebugReporter.install(
             debugOutputPathAsString = debugOutput,
@@ -265,7 +265,7 @@ class TestCommand : Callable<Int> {
         ))
 
         val result = handleSessions(debugOutputPath, executionPlan, resolvedTestOutputDir)
-        
+
         // Track test execution finish
         val allSuccess = result == 0
         val duration = System.currentTimeMillis() - startTime
@@ -311,10 +311,10 @@ class TestCommand : Callable<Int> {
     private fun resolveTestOutputDir(plan: ExecutionPlan): Path? {
         // Command line flag takes precedence
         testOutputDir?.let { return File(it).toPath() }
-        
+
         // Then check workspace config
         plan.workspaceConfig.testOutputDir?.let { return File(it).toPath() }
-        
+
         // No test output directory configured
         return null
     }
@@ -338,6 +338,7 @@ class TestCommand : Callable<Int> {
             port = parent?.port,
         )
         val availableDevicesIds = connectedDevices.map { it.instanceId }.toSet()
+        println("\nAvailable devices: $availableDevicesIds\n")
         val deviceIds = getPassedOptionsDeviceIds(plan)
             .filter { device ->
                 if (device !in availableDevicesIds) {

@@ -169,20 +169,21 @@ object DeviceService {
     }
 
     fun listAndroidDevices(host: String? = null, port: Int? = null): List<Device> {
-        val host = host ?: "localhost"
-        if (port != null) {
-            val dadb = Dadb.create(host, port)
-            return listOf(
-                Device.Connected(
-                    instanceId = dadb.toString(),
-                    description = dadb.toString(),
-                    platform = Platform.ANDROID,
-                    deviceType = Device.DeviceType.EMULATOR
-                )
-            )
+        val adbSocketEnv = System.getenv("ADB_SERVER_SOCKET")
+        var finalHost = host
+        var finalPort = port
+
+        if (finalHost == null && finalPort == null && adbSocketEnv != null && adbSocketEnv.startsWith("tcp:")) {
+            val parts = adbSocketEnv.substring(4).split(":")
+            if (parts.size == 2) {
+                finalHost = parts[0]
+                finalPort = parts[1].toIntOrNull()
+            }
         }
+
+        val hostToUse = finalHost ?: "localhost"
         val connected = runCatching {
-            Dadb.list(host = host).map { dadb ->
+            Dadb.list(host = hostToUse).map { dadb ->
                 val avdName = runCatching {
                     dadb.shell("getprop ro.kernel.qemu").output.trim().let { qemuProp ->
                         if (qemuProp == "1") {

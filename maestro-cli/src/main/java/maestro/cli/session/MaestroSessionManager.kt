@@ -115,7 +115,9 @@ object MaestroSessionManager {
             isHeadless = isHeadless,
             driverHostPort = driverHostPort,
             reinstallDriver = reinstallDriver,
-            platformConfiguration = executionPlan?.workspaceConfig?.platform
+            platformConfiguration = executionPlan?.workspaceConfig?.platform,
+            host = host,
+            port = port,
         )
         Runtime.getRuntime().addShutdownHook(thread(start = false) {
             heartbeatFuture.cancel(true)
@@ -196,6 +198,8 @@ object MaestroSessionManager {
         reinstallDriver: Boolean,
         driverHostPort: Int?,
         platformConfiguration: PlatformConfiguration? = null,
+        host: String?,
+        port: Int?,
     ): MaestroSession {
         return when {
             selectedDevice.device != null -> MaestroSession(
@@ -204,6 +208,8 @@ object MaestroSessionManager {
                         selectedDevice.device.instanceId,
                         !connectToExistingSession,
                         driverHostPort,
+                        host,
+                        port,
                     )
 
                     Platform.IOS -> createIOS(
@@ -318,13 +324,32 @@ object MaestroSessionManager {
         instanceId: String,
         openDriver: Boolean,
         driverHostPort: Int?,
+        host: String?,
+        port: Int?,
     ): Maestro {
-        val driver = AndroidDriver(
-            dadb = Dadb
+        val adbSocketEnv = System.getenv("ADB_SERVER_SOCKET")
+        var finalHost = host
+        var finalPort = port
+
+        if (finalHost == null && finalPort == null && adbSocketEnv != null && adbSocketEnv.startsWith("tcp:")) {
+            val parts = adbSocketEnv.substring(4).split(":")
+            if (parts.size == 2) {
+                finalHost = parts[0]
+                finalPort = parts[1].toIntOrNull()
+            }
+        }
+
+        val dadb = if (finalHost != null && finalPort != null) {
+            AdbServer.createDadb(finalHost, finalPort, "host:transport:$instanceId")
+        } else {
+            Dadb
                 .list()
                 .find { it.toString() == instanceId }
                 ?: Dadb.discover()
-                ?: error("Unable to find device with id $instanceId"),
+        }
+
+        val driver = AndroidDriver(
+            dadb = dadb ?: error("Unable to find device with id $instanceId"),
             hostPort = driverHostPort,
             emulatorName = instanceId,
         )
