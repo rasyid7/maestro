@@ -24,11 +24,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.runBlocking
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
-import com.fasterxml.jackson.core.type.TypeReference
 import maestro.Maestro
 import maestro.cli.App
 import maestro.cli.CliError
@@ -178,12 +173,6 @@ class TestCommand : Callable<Int> {
         split = ",",
     )
     private var excludeTags: List<String> = emptyList()
-
-    @Option(
-        names = ["--time-estimates"],
-        description = ["Path to a JSON or YAML file containing test runtime estimates for better sharding"],
-    )
-    private var timeEstimatesFile: File? = null
 
     @Option(
         names = ["--headless"],
@@ -399,18 +388,9 @@ class TestCommand : Callable<Int> {
                 "Will use $effectiveShards shards instead."
         if (shardAll == null && requestedShards > plan.flowsToRun.size) PrintUtils.warn(warning)
 
-        val timeEstimates = parseTimeEstimates()
-        // Sort flows by estimate (descending) for better dynamic balancing (LPT)
-        // If no estimates, use original order (or shuffle?)
-        val sortedFlows = if (timeEstimates.isNotEmpty()) {
-            plan.flowsToRun.sortedByDescending { getEstimate(it, timeEstimates) }
-        } else {
-            plan.flowsToRun
-        }
+        val flowQueue = ConcurrentLinkedQueue(plan.flowsToRun)
 
-        val flowQueue = ConcurrentLinkedQueue(sortedFlows)
-
-        val chunkPlans = makeChunkPlans(plan, effectiveShards, onlySequenceFlows, timeEstimates)
+        val chunkPlans = makeChunkPlans(plan, effectiveShards, onlySequenceFlows)
 
         val flowCount = if (onlySequenceFlows) plan.sequence.flows.size else plan.flowsToRun.size
         val message = when {
@@ -630,38 +610,9 @@ class TestCommand : Callable<Int> {
         plan: ExecutionPlan,
         effectiveShards: Int,
         onlySequenceFlows: Boolean,
-        timeEstimates: Map<String, Long> = emptyMap(),
     ) = when {
         onlySequenceFlows -> listOf(plan) // We only want to run sequential flows in this case.
         shardAll != null -> (0 until effectiveShards).reversed().map { plan.copy() }
-        timeEstimates.isNotEmpty() -> {
-            val sortedFlows = plan.flowsToRun.sortedByDescending { path ->
-                getEstimate(path, timeEstimates)
-            }
-
-            val shards = Array(effectiveShards) { mutableListOf<Path>() }
-            val shardTimes = LongArray(effectiveShards)
-
-            sortedFlows.forEach { flow ->
-                val estimate = getEstimate(flow, timeEstimates)
-                var minShardIndex = 0
-                var minLoad = Long.MAX_VALUE
-
-                for (i in 0 until effectiveShards) {
-                    if (shardTimes[i] < minLoad) {
-                        minLoad = shardTimes[i]
-                        minShardIndex = i
-                    }
-                }
-
-                shards[minShardIndex].add(flow)
-                shardTimes[minShardIndex] += estimate
-            }
-
-            shards.map { flows ->
-                ExecutionPlan(flows, plan.sequence, plan.workspaceConfig)
-            }
-        }
         else -> plan.flowsToRun
             .withIndex()
             .groupBy { it.index % effectiveShards }
@@ -669,34 +620,6 @@ class TestCommand : Callable<Int> {
                 val flowsToRun = files.map { it.value }
                 ExecutionPlan(flowsToRun, plan.sequence, plan.workspaceConfig)
             }
-    }
-
-    private fun getEstimate(path: Path, estimates: Map<String, Long>): Long {
-        val fullPath = path.toAbsolutePath().toString()
-        val fileName = path.fileName.toString()
-        val nameWithoutExt = fileName.substringBeforeLast(".")
-
-        return estimates[fullPath]
-            ?: estimates[fileName]
-            ?: estimates[nameWithoutExt]
-            ?: 1L
-    }
-
-    private fun parseTimeEstimates(): Map<String, Long> {
-        val file = timeEstimatesFile ?: return emptyMap()
-        if (!file.exists()) throw CliError("Time estimates file not found: ${file.absolutePath}")
-
-        val mapper = if (file.name.endsWith(".json")) {
-            jacksonObjectMapper()
-        } else {
-            ObjectMapper(YAMLFactory()).registerKotlinModule()
-        }
-
-        return try {
-            mapper.readValue(file, object : TypeReference<Map<String, Long>>() {})
-        } catch (e: Exception) {
-            throw CliError("Failed to parse time estimates file: ${e.message}")
-        }
     }
 
     private fun getPassedOptionsDeviceIds(plan: ExecutionPlan): List<String> {
