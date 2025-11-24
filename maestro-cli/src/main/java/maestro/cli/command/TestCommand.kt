@@ -78,6 +78,7 @@ import java.nio.file.Path
 import java.time.LocalDate
 import java.util.concurrent.Callable
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.io.path.absolutePathString
 import kotlin.math.roundToInt
 import maestro.device.Platform
@@ -399,16 +400,23 @@ class TestCommand : Callable<Int> {
         if (shardAll == null && requestedShards > plan.flowsToRun.size) PrintUtils.warn(warning)
 
         val timeEstimates = parseTimeEstimates()
+        // Sort flows by estimate (descending) for better dynamic balancing (LPT)
+        // If no estimates, use original order (or shuffle?)
+        val sortedFlows = if (timeEstimates.isNotEmpty()) {
+            plan.flowsToRun.sortedByDescending { getEstimate(it, timeEstimates) }
+        } else {
+            plan.flowsToRun
+        }
+
+        val flowQueue = ConcurrentLinkedQueue(sortedFlows)
+
         val chunkPlans = makeChunkPlans(plan, effectiveShards, onlySequenceFlows, timeEstimates)
 
         val flowCount = if (onlySequenceFlows) plan.sequence.flows.size else plan.flowsToRun.size
         val message = when {
             shardAll != null -> "Will run $effectiveShards shards, with all $flowCount flows in each shard"
             shardSplit != null -> {
-                val flowsPerShard = (flowCount.toFloat() / effectiveShards).roundToInt()
-                val isApprox = flowCount % effectiveShards != 0
-                val prefix = if (isApprox) "approx. " else ""
-                "Will split $flowCount flows across $effectiveShards shards (${prefix}$flowsPerShard flows per shard)"
+                 "Will split $flowCount flows across $effectiveShards shards (dynamic distribution)"
             }
 
             else -> null
@@ -429,6 +437,11 @@ class TestCommand : Callable<Int> {
                     chunkPlans = chunkPlans,
                     debugOutputPath = debugOutputPath,
                     testOutputDir = testOutputDir,
+                    flowRetriever = if (shardSplit != null) {
+                        { flowQueue.poll() }
+                    } else {
+                        null
+                    },
                 )
             }
         }.awaitAll()
@@ -456,6 +469,7 @@ class TestCommand : Callable<Int> {
         chunkPlans: List<ExecutionPlan>,
         debugOutputPath: Path,
         testOutputDir: Path?,
+        flowRetriever: (() -> Path?)? = null,
     ): Triple<Int?, Int?, TestExecutionSummary?> {
         val driverHostPort = selectPort(effectiveShards)
         val deviceId = deviceIds[shardIndex]
@@ -488,7 +502,7 @@ class TestCommand : Callable<Int> {
                     )
                 }
                 runBlocking {
-                    runMultipleFlows(maestro, device, chunkPlans, shardIndex, debugOutputPath, testOutputDir)
+                    runMultipleFlows(maestro, device, chunkPlans, shardIndex, debugOutputPath, testOutputDir, flowRetriever)
                 }
             } else {
                 val flowFile = flowFiles.first()
@@ -569,7 +583,8 @@ class TestCommand : Callable<Int> {
         chunkPlans: List<ExecutionPlan>,
         shardIndex: Int,
         debugOutputPath: Path,
-        testOutputDir: Path?
+        testOutputDir: Path?,
+        flowRetriever: (() -> Path?)? = null,
     ): Triple<Int?, Int?, TestExecutionSummary> {
         val startTime = System.currentTimeMillis()
         val totalFlowCount = chunkPlans.sumOf { it.flowsToRun.size }
@@ -589,7 +604,8 @@ class TestCommand : Callable<Int> {
             env = env,
             reportOut = null,
             debugOutputPath = debugOutputPath,
-            testOutputDir = testOutputDir
+            testOutputDir = testOutputDir,
+            flowRetriever = flowRetriever,
         )
 
         val duration = System.currentTimeMillis() - startTime

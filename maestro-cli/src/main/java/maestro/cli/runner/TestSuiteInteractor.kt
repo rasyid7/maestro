@@ -53,9 +53,10 @@ class TestSuiteInteractor(
         reportOut: Sink?,
         env: Map<String, String>,
         debugOutputPath: Path,
-        testOutputDir: Path? = null
+        testOutputDir: Path? = null,
+        flowRetriever: (() -> Path?)? = null,
     ): TestExecutionSummary {
-        if (executionPlan.flowsToRun.isEmpty() && executionPlan.sequence.flows.isEmpty()) {
+        if (executionPlan.flowsToRun.isEmpty() && executionPlan.sequence.flows.isEmpty() && flowRetriever == null) {
             throw CliError("${shardPrefix}No flows returned from the tag filter used")
         }
 
@@ -88,18 +89,35 @@ class TestSuiteInteractor(
         }
 
         // proceed to run all other Flows
-        executionPlan.flowsToRun.forEach { flow ->
-            val flowFile = flow.toFile()
-            val updatedEnv = env
-                .withInjectedShellEnvVars()
-                .withDefaultEnvVars(flowFile)
-            val (result, aiOutput) = runFlow(flowFile, updatedEnv, maestro, debugOutputPath, testOutputDir)
-            aiOutputs.add(aiOutput)
+        if (flowRetriever != null) {
+            while (true) {
+                val flow = flowRetriever() ?: break
+                val flowFile = flow.toFile()
+                val updatedEnv = env
+                    .withInjectedShellEnvVars()
+                    .withDefaultEnvVars(flowFile)
+                val (result, aiOutput) = runFlow(flowFile, updatedEnv, maestro, debugOutputPath, testOutputDir)
+                aiOutputs.add(aiOutput)
 
-            if (result.status == FlowStatus.ERROR) {
-                passed = false
+                if (result.status == FlowStatus.ERROR) {
+                    passed = false
+                }
+                flowResults.add(result)
             }
-            flowResults.add(result)
+        } else {
+            executionPlan.flowsToRun.forEach { flow ->
+                val flowFile = flow.toFile()
+                val updatedEnv = env
+                    .withInjectedShellEnvVars()
+                    .withDefaultEnvVars(flowFile)
+                val (result, aiOutput) = runFlow(flowFile, updatedEnv, maestro, debugOutputPath, testOutputDir)
+                aiOutputs.add(aiOutput)
+
+                if (result.status == FlowStatus.ERROR) {
+                    passed = false
+                }
+                flowResults.add(result)
+            }
         }
 
 
