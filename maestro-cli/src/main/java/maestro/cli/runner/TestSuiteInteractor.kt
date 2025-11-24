@@ -54,8 +54,9 @@ class TestSuiteInteractor(
         env: Map<String, String>,
         debugOutputPath: Path,
         deviceId: String? = null,
+        flowRetriever: (() -> Path?)? = null,
     ): TestExecutionSummary {
-        if (executionPlan.flowsToRun.isEmpty() && executionPlan.sequence.flows.isEmpty()) {
+        if (executionPlan.flowsToRun.isEmpty() && executionPlan.sequence.flows.isEmpty() && flowRetriever == null) {
             throw CliError("${shardPrefix}No flows returned from the tag filter used")
         }
 
@@ -89,8 +90,9 @@ class TestSuiteInteractor(
             }
         }
 
-        // proceed to run all other Flows
-        executionPlan.flowsToRun.forEach { flow ->
+        // proceed to run all other Flows; with dynamic sharding, shards pull flows from a shared queue
+        val flowsToRun = flowRetriever?.let { generateSequence { it() } } ?: executionPlan.flowsToRun.asSequence()
+        flowsToRun.forEach { flow ->
             val flowFile = flow.toFile()
             val updatedEnv = env
                 .withInjectedShellEnvVars()
