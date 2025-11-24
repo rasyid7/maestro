@@ -73,6 +73,7 @@ import java.nio.file.Path
 import java.time.LocalDate
 import java.util.concurrent.Callable
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.io.path.absolutePathString
 import kotlin.math.roundToInt
 import maestro.device.Platform
@@ -224,7 +225,7 @@ class TestCommand : Callable<Int> {
         if(plan.flowsToRun.isEmpty() && plan.sequence.flows.isEmpty()) return false
         return (plan.flowsToRun.all { it.toFile().isWebFlow() } && plan.sequence.flows.all { it.toFile().isWebFlow() })
     }
-  
+
     override fun call(): Int {
         TestDebugReporter.install(
             debugOutputPathAsString = debugOutput,
@@ -322,10 +323,10 @@ class TestCommand : Callable<Int> {
     private fun resolveTestOutputDir(plan: ExecutionPlan): Path? {
         // Command line flag takes precedence
         testOutputDir?.let { return File(it).toPath() }
-        
+
         // Then check workspace config
         plan.workspaceConfig.testOutputDir?.let { return File(it).toPath() }
-        
+
         // No test output directory configured
         return null
     }
@@ -387,16 +388,15 @@ class TestCommand : Callable<Int> {
                 "Will use $effectiveShards shards instead."
         if (shardAll == null && requestedShards > plan.flowsToRun.size) PrintUtils.warn(warning)
 
+        val flowQueue = ConcurrentLinkedQueue(plan.flowsToRun)
+
         val chunkPlans = makeChunkPlans(plan, effectiveShards, onlySequenceFlows)
 
         val flowCount = if (onlySequenceFlows) plan.sequence.flows.size else plan.flowsToRun.size
         val message = when {
             shardAll != null -> "Will run $effectiveShards shards, with all $flowCount flows in each shard"
             shardSplit != null -> {
-                val flowsPerShard = (flowCount.toFloat() / effectiveShards).roundToInt()
-                val isApprox = flowCount % effectiveShards != 0
-                val prefix = if (isApprox) "approx. " else ""
-                "Will split $flowCount flows across $effectiveShards shards (${prefix}$flowsPerShard flows per shard)"
+                 "Will split $flowCount flows across $effectiveShards shards (dynamic distribution)"
             }
 
             else -> null
@@ -417,6 +417,11 @@ class TestCommand : Callable<Int> {
                     chunkPlans = chunkPlans,
                     debugOutputPath = debugOutputPath,
                     testOutputDir = testOutputDir,
+                    flowRetriever = if (shardSplit != null) {
+                        { flowQueue.poll() }
+                    } else {
+                        null
+                    },
                 )
             }
         }.awaitAll()
@@ -444,6 +449,7 @@ class TestCommand : Callable<Int> {
         chunkPlans: List<ExecutionPlan>,
         debugOutputPath: Path,
         testOutputDir: Path?,
+        flowRetriever: (() -> Path?)? = null,
     ): Triple<Int?, Int?, TestExecutionSummary?> {
         val driverHostPort = selectPort(effectiveShards)
         val deviceId = deviceIds[shardIndex]
@@ -476,7 +482,7 @@ class TestCommand : Callable<Int> {
                     )
                 }
                 runBlocking {
-                    runMultipleFlows(maestro, device, chunkPlans, shardIndex, debugOutputPath, testOutputDir)
+                    runMultipleFlows(maestro, device, chunkPlans, shardIndex, debugOutputPath, testOutputDir, flowRetriever)
                 }
             } else {
                 val flowFile = flowFiles.first()
@@ -557,7 +563,8 @@ class TestCommand : Callable<Int> {
         chunkPlans: List<ExecutionPlan>,
         shardIndex: Int,
         debugOutputPath: Path,
-        testOutputDir: Path?
+        testOutputDir: Path?,
+        flowRetriever: (() -> Path?)? = null,
     ): Triple<Int?, Int?, TestExecutionSummary> {
         val startTime = System.currentTimeMillis()
         val totalFlowCount = chunkPlans.sumOf { it.flowsToRun.size }
@@ -577,7 +584,8 @@ class TestCommand : Callable<Int> {
             env = env,
             reportOut = null,
             debugOutputPath = debugOutputPath,
-            testOutputDir = testOutputDir
+            testOutputDir = testOutputDir,
+            flowRetriever = flowRetriever,
         )
 
         val duration = System.currentTimeMillis() - startTime
@@ -598,7 +606,7 @@ class TestCommand : Callable<Int> {
         return Triple(suiteResult.passedCount, suiteResult.totalTests, suiteResult)
     }
 
-    private fun makeChunkPlans(
+    internal fun makeChunkPlans(
         plan: ExecutionPlan,
         effectiveShards: Int,
         onlySequenceFlows: Boolean,
@@ -664,20 +672,20 @@ class TestCommand : Callable<Int> {
         if (CiUtils.getCiProvider() != null) {
             return
         }
-        
+
         val promotionStateManager = PromotionStateManager()
         val today = LocalDate.now().toString()
-        
+
         // Don't show if already shown today
         if (promotionStateManager.getLastShownDate("fasterResults") == today) {
             return
         }
-        
+
         // Don't show if user has used cloud command within last 3 days
         if (promotionStateManager.wasCloudCommandUsedWithinDays(3)) {
             return
         }
-        
+
         val command = "maestro cloud app_file flows_folder/"
         val message = "Get results faster by ${"executing flows in parallel".cyan()} on Maestro Cloud virtual devices. Run: \n${command.green()}"
         PrintUtils.info(message.greenBox())
@@ -689,7 +697,7 @@ class TestCommand : Callable<Int> {
         if (CiUtils.getCiProvider() != null) {
             return
         }
-        
+
         val promotionStateManager = PromotionStateManager()
         val today = LocalDate.now().toString()
 
@@ -702,7 +710,7 @@ class TestCommand : Callable<Int> {
         if (promotionStateManager.wasCloudCommandUsedWithinDays(3)) {
           return
         }
-        
+
         val command = "maestro cloud app_file flows_folder/"
         val message = "Debug tests faster by easy access to ${"test recordings, maestro logs, screenshots, and more".cyan()}.\n\nRun your flows on Maestro Cloud:\n${command.green()}"
         PrintUtils.info(message.greenBox())
