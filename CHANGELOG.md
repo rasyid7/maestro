@@ -43,7 +43,7 @@
 - Labels in commands can now be dynamically evaluated using JavaScript expressions (thanks @jerriais!)
 
 ### Fixes
-- Fixed issue where `maestro login` would fail if user was already logged in 
+- Fixed issue where `maestro login` would fail if user was already logged in
 - Fixed iOS permission setting when using 'all' with specific permission overrides
 - Fixed issue where platform argument would be ignored
 - Fixed issue where blank platform argument would incorrectly filter out all tests
