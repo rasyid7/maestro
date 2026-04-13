@@ -52,6 +52,8 @@ import okio.Sink
 import okio.source
 import org.slf4j.LoggerFactory
 import util.XCRunnerCLIUtils
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.withTimeout
 import java.io.File
 import java.net.SocketTimeoutException
 import kotlin.collections.set
@@ -99,10 +101,22 @@ class IOSDriver(
     override fun launchApp(
         appId: String,
         launchArguments: Map<String, Any>,
+        timeout: Long?,
     ) {
         metrics.measured("operation", mapOf("command" to "launchApp", "appId" to appId)) {
-            iosDevice.launch(appId, launchArguments)
-            this.appId = appId
+            val effectiveTimeout = timeout ?: 30000L // Default 30 seconds
+            try {
+                kotlinx.coroutines.runBlocking {
+                    withTimeout(effectiveTimeout) {
+                        iosDevice.launch(appId, launchArguments)
+                    }
+                }
+                this.appId = appId
+            } catch (e: TimeoutCancellationException) {
+                throw MaestroException.UnableToLaunchApp(
+                    "Unable to launch app $appId within ${effectiveTimeout}ms"
+                )
+            }
         }
     }
 

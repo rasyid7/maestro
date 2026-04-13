@@ -1,6 +1,10 @@
 package maestro.drivers
 
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import maestro.Capability
+import maestro.MaestroException
 import maestro.DeviceInfo
 import maestro.device.DeviceOrientation
 import maestro.Driver
@@ -196,17 +200,30 @@ class WebDriver(
     override fun launchApp(
         appId: String,
         launchArguments: Map<String, Any>,
+        timeout: Long?,
     ) {
         injectedArguments = injectedArguments + launchArguments
 
-        open()
-        val driver = ensureOpen()
+        val effectiveTimeout = timeout ?: 30000L // Default 30 seconds
+        
+        try {
+            runBlocking {
+                withTimeout(effectiveTimeout) {
+                    open()
+                    val driver = ensureOpen()
 
-        driver.manage().timeouts().implicitlyWait(Duration.ofMillis(5000))
-        val wait = WebDriverWait(driver, Duration.ofSeconds(30L))
+                    driver.manage().timeouts().implicitlyWait(Duration.ofMillis(5000))
+                    val wait = WebDriverWait(driver, Duration.ofSeconds(30L))
 
-        driver.get(appId)
-        wait.until { (it as JavascriptExecutor).executeScript("return document.readyState") == "complete" }
+                    driver.get(appId)
+                    wait.until { (it as JavascriptExecutor).executeScript("return document.readyState") == "complete" }
+                }
+            }
+        } catch (e: TimeoutCancellationException) {
+            throw MaestroException.UnableToLaunchApp(
+                "Unable to launch app $appId within ${effectiveTimeout}ms"
+            )
+        }
     }
 
     override fun stopApp(appId: String) {

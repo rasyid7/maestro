@@ -64,7 +64,8 @@ class Maestro(
     suspend fun launchApp(
         appId: String,
         launchArguments: Map<String, Any> = emptyMap(),
-        stopIfRunning: Boolean = true
+        stopIfRunning: Boolean = true,
+        timeout: Long? = null,
     ) = runInterruptible(Dispatchers.IO) {
         LOGGER.info("Launching app $appId")
 
@@ -72,7 +73,7 @@ class Maestro(
             LOGGER.info("Stopping $appId app during launch")
             driver.stopApp(appId)
         }
-        driver.launchApp(appId, launchArguments)
+        driver.launchApp(appId, launchArguments, timeout)
     }
 
     suspend fun stopApp(appId: String) = runInterruptible(Dispatchers.IO) {

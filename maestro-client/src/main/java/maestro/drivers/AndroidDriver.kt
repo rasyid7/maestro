@@ -40,6 +40,9 @@ import maestro.android.chromedevtools.AndroidWebViewHierarchyClient
 import maestro.device.DeviceOrientation
 import maestro.device.Platform
 import maestro.utils.BlockingStreamObserver
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import maestro.utils.MaestroTimer
 import maestro.utils.Metrics
 import maestro.utils.MetricsProvider
@@ -213,6 +216,7 @@ class AndroidDriver(
     override fun launchApp(
         appId: String,
         launchArguments: Map<String, Any>,
+        timeout: Long?,
     ) {
         metrics.measured("operation", mapOf("command" to "launchApp", "appId" to appId)) {
             if(!open) // pick device flow, no open() invocation
@@ -223,13 +227,25 @@ class AndroidDriver(
             }
 
             val arguments = launchArguments.toAndroidLaunchArguments()
-            runDeviceCall("launchApp") {
-                blockingStubWithTimeout.launchApp(
-                    launchAppRequest {
-                        this.packageName = appId
-                        this.arguments.addAll(arguments)
+            val effectiveTimeout = timeout ?: 30000L // Default 30 seconds
+            
+            try {
+                runBlocking {
+                    withTimeout(effectiveTimeout) {
+                        runDeviceCall("launchApp") {
+                            blockingStubWithTimeout.launchApp(
+                                launchAppRequest {
+                                    this.packageName = appId
+                                    this.arguments.addAll(arguments)
+                                }
+                            ) ?: throw IllegalStateException("Maestro driver failed to launch app")
+                        }
                     }
-                ) ?: throw IllegalStateException("Maestro driver failed to launch app")
+                }
+            } catch (e: TimeoutCancellationException) {
+                throw MaestroException.UnableToLaunchApp(
+                    "Unable to launch app $appId within ${effectiveTimeout}ms"
+                )
             }
         }
     }

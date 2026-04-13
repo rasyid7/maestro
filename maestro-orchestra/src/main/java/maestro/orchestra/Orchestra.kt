@@ -1165,7 +1165,8 @@ class Orchestra(
             maestro.launchApp(
                 appId = command.appId,
                 launchArguments = command.launchArguments ?: emptyMap(),
-                stopIfRunning = command.stopApp ?: true
+                stopIfRunning = command.stopApp ?: true,
+                timeout = command.timeout,
             )
         } catch (e: Exception) {
             logger.error("Failed to launch app", e)

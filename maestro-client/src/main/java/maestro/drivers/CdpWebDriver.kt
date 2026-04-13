@@ -2,8 +2,11 @@ package maestro.drivers
 
 import CdpClient
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import maestro.Capability
+import maestro.MaestroException
 import maestro.DeviceInfo
 import maestro.device.DeviceOrientation
 import maestro.Driver
@@ -238,12 +241,23 @@ class CdpWebDriver(
     override fun launchApp(
         appId: String,
         launchArguments: Map<String, Any>,
+        timeout: Long?,
     ) {
         injectedArguments = injectedArguments + launchArguments
 
-        runBlocking {
-            val target = cdpClient.listTargets().first()
-            cdpClient.openUrl(appId, target)
+        val effectiveTimeout = timeout ?: 30000L // Default 30 seconds
+        
+        try {
+            runBlocking {
+                withTimeout(effectiveTimeout) {
+                    val target = cdpClient.listTargets().first()
+                    cdpClient.openUrl(appId, target)
+                }
+            }
+        } catch (e: TimeoutCancellationException) {
+            throw MaestroException.UnableToLaunchApp(
+                "Unable to launch app $appId within ${effectiveTimeout}ms"
+            )
         }
     }
 

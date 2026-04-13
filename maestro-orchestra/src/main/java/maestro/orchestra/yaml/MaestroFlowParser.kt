@@ -66,6 +66,7 @@ private val stringCommands = mapOf<String, (JsonLocation) -> YamlFluentCommand>(
             stopApp = null,
             permissions = null,
             arguments = null,
+            timeout = null,
         ),
     )},
     "stopApp" to { location -> YamlFluentCommand(

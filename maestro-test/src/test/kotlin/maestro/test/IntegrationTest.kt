@@ -4714,6 +4714,54 @@ class IntegrationTest {
         )
     }
 
+    @Test
+    fun `Case 140 - Launch app with timeout parameter`() {
+        // Given
+        val commands = readCommands("140_launch_app_with_timeout")
+        val driver = driver { }
+        driver.addInstalledApp("com.example.app")
+
+        // When
+        Maestro(driver).use {
+            runBlocking {
+                orchestra(it).runFlow(commands)
+            }
+        }
+
+        // Then
+        driver.assertEvents(
+            listOf(
+                Event.LaunchApp(appId = "com.example.app"),
+            )
+        )
+    }
+
+    @Test
+    fun `Case 141 - Launch app command with timeout parameter`() {
+        // Given
+        val commands = listOf(
+            MaestroCommand(
+                LaunchAppCommand(
+                    appId = "com.example.app",
+                    timeout = 10000L
+                )
+            )
+        )
+
+        val driver = driver {}
+        driver.addInstalledApp("com.example.app")
+
+        // When
+        Maestro(driver).use {
+            runBlocking {
+                orchestra(it).runFlow(commands)
+            }
+        }
+
+        // Then
+        driver.assertHasEvent(Event.LaunchApp(appId = "com.example.app"))
+    }
+
     private fun orchestra(
         maestro: Maestro,
     ) = Orchestra(

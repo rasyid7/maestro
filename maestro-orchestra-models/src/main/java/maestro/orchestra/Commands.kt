@@ -521,6 +521,7 @@ data class LaunchAppCommand(
     val stopApp: Boolean? = null,
     var permissions: Map<String, String>? = null,
     val launchArguments: Map<String, Any>? = null,
+    val timeout: Long? = null,
     override val label: String? = null,
     override val optional: Boolean = false,
 ) : Command {
