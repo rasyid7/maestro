@@ -209,3 +209,11 @@ mavenPublishing {
 tasks.named<Test>("test") {
     useJUnitPlatform()
 }
+
+// Gradle 8.13 changed default duplicatesStrategy for Jar tasks to FAIL.
+// The protobuf plugin already registers generated source dirs automatically;
+// the manual srcDirs block above registers them again, causing duplicates in
+// sourcesJar. Files are identical so EXCLUDE is safe.
+tasks.withType<Jar>().configureEach {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
