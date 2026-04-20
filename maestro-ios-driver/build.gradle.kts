@@ -78,3 +78,9 @@ tasks.register<Exec>("buildIosDriver") {
 tasks.named("processResources") {
     dependsOn("buildIosDriver")
 }
+
+afterEvaluate {
+    tasks.named("sourcesJar") {
+        dependsOn("buildIosDriver")
+    }
+}
