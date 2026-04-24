@@ -33,7 +33,7 @@ class XCTestDriverClientTest {
             setBody(mapper.writeValueAsString(error))
         }
         mockWebServer.enqueue(mockResponse)
-        mockWebServer.start(InetAddress.getByName("localhost"), 22087)
+        mockWebServer.start(InetAddress.getByName("localhost"), 0)
         val httpUrl = mockWebServer.url("/deviceInfo")
 
         // when
@@ -41,16 +41,18 @@ class XCTestDriverClientTest {
         val mockXCTestInstaller = MockXCTestInstaller(simulator)
         val xcTestDriverClient = XCTestDriverClient(
             mockXCTestInstaller,
-            XCTestClient("localhost", 22087)
+            XCTestClient("localhost", mockWebServer.port)
         )
 
-
         // then
-        assertThrows<XCUITestServerError.BadRequest> {
-            xcTestDriverClient.deviceInfo(httpUrl)
+        try {
+            assertThrows<XCUITestServerError.BadRequest> {
+                xcTestDriverClient.deviceInfo(httpUrl)
+            }
+            mockXCTestInstaller.assertInstallationRetries(0)
+        } finally {
+            mockWebServer.shutdown()
         }
-        mockXCTestInstaller.assertInstallationRetries(0)
-        mockWebServer.shutdown()
     }
 
     @Test
@@ -64,7 +66,7 @@ class XCTestDriverClientTest {
             setBody(mapper.writeValueAsString(expectedDeviceInfo))
         }
         mockWebServer.enqueue(mockResponse)
-        mockWebServer.start(InetAddress.getByName("localhost"), 22087)
+        mockWebServer.start(InetAddress.getByName("localhost"), 0)
         val httpUrl = mockWebServer.url("/deviceInfo")
 
         // when
@@ -72,14 +74,17 @@ class XCTestDriverClientTest {
         val mockXCTestInstaller = MockXCTestInstaller(simulator)
         val xcTestDriverClient = XCTestDriverClient(
             mockXCTestInstaller,
-            XCTestClient("localhost", 22087)
+            XCTestClient("localhost", mockWebServer.port)
         )
-        val actualDeviceInfo = xcTestDriverClient.deviceInfo(httpUrl)
 
         // then
-        assertThat(actualDeviceInfo).isEqualTo(expectedDeviceInfo)
-        mockXCTestInstaller.assertInstallationRetries(0)
-        mockWebServer.shutdown()
+        try {
+            val actualDeviceInfo = xcTestDriverClient.deviceInfo(httpUrl)
+            assertThat(actualDeviceInfo).isEqualTo(expectedDeviceInfo)
+            mockXCTestInstaller.assertInstallationRetries(0)
+        } finally {
+            mockWebServer.shutdown()
+        }
     }
 
     @ParameterizedTest
@@ -94,7 +99,7 @@ class XCTestDriverClientTest {
             setBody(mapper.writeValueAsString(expectedDeviceInfo))
         }
         mockWebServer.enqueue(mockResponse)
-        mockWebServer.start(InetAddress.getByName( "localhost"), 22087)
+        mockWebServer.start(InetAddress.getByName("localhost"), 0)
         val httpUrl = mockWebServer.url("/deviceInfo")
 
         // when
@@ -102,16 +107,18 @@ class XCTestDriverClientTest {
         val mockXCTestInstaller = MockXCTestInstaller(simulator)
         val xcTestDriverClient = XCTestDriverClient(
             mockXCTestInstaller,
-            XCTestClient("localhost", 22087)
+            XCTestClient("localhost", mockWebServer.port)
         )
 
-
         // then
-        assertThrows<XCUITestServerError.AppCrash> {
-            xcTestDriverClient.deviceInfo(httpUrl)
+        try {
+            assertThrows<XCUITestServerError.AppCrash> {
+                xcTestDriverClient.deviceInfo(httpUrl)
+            }
+            mockXCTestInstaller.assertInstallationRetries(0)
+        } finally {
+            mockWebServer.shutdown()
         }
-        mockXCTestInstaller.assertInstallationRetries(0)
-        mockWebServer.shutdown()
     }
 
     @Test
