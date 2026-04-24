@@ -15,14 +15,20 @@ import kotlin.math.min
 
 class SkiaTextClipper {
 
+    private val fontCollection = FontCollection().setDefaultFontManager(FontMgr.default)
+
     private val terminalTextStyle = TextStyle().apply {
         fontFamilies = SkiaFonts.MONOSPACE_FONT_FAMILIES.toTypedArray()
         fontSize = 24f
         color = Color.WHITE
     }
 
+    private var cachedParagraph: Paragraph? = null
+    private var cachedText: String? = null
+    private var cachedWidth: Float? = null
+
     fun renderClippedText(canvas: Canvas, rect: Rect, text: String, focusedLine: Int) {
-        val p = createParagraph(text, rect.width)
+        val p = getParagraph(text, rect.width)
         val focusedLineRange = getRangeForLine(text, focusedLine)
         val focusedLineBottom = p.getRectsForRange(
             start = focusedLineRange.first,
@@ -53,8 +59,18 @@ class SkiaTextClipper {
         return Pair(start, end)
     }
 
+    private fun getParagraph(text: String, width: Float): Paragraph {
+        if (text == cachedText && width == cachedWidth) {
+            return cachedParagraph!!
+        }
+        return createParagraph(text, width).also {
+            cachedParagraph = it
+            cachedText = text
+            cachedWidth = width
+        }
+    }
+
     private fun createParagraph(text: String, width: Float): Paragraph {
-        val fontCollection = FontCollection().setDefaultFontManager(FontMgr.default)
         return ParagraphBuilder(ParagraphStyle(), fontCollection)
             .pushStyle(terminalTextStyle)
             .addText(text)

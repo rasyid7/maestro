@@ -8,9 +8,10 @@ import org.jetbrains.skia.Rect
 import org.jetbrains.skia.Surface
 import org.jetbrains.skiko.toImage
 import java.awt.image.BufferedImage
+import java.io.Closeable
 import javax.imageio.ImageIO
 
-class SkiaFrameRenderer : FrameRenderer {
+class SkiaFrameRenderer : FrameRenderer, Closeable {
 
     private val backgroundImage = ImageIO.read(SkiaFrameRenderer::class.java.getResource("/record-background.jpg")!!).toImage()
 
@@ -41,16 +42,23 @@ class SkiaFrameRenderer : FrameRenderer {
 
     private val textClipper = SkiaTextClipper()
 
+    private var surface: Surface? = null
+
     override fun render(
         outputWidthPx: Int,
         outputHeightPx: Int,
         screen: BufferedImage,
         text: String
     ): BufferedImage {
-        return Surface.makeRasterN32Premul(outputWidthPx, outputHeightPx).use { surface ->
-            drawScene(surface.canvas, outputWidthPx.toFloat(), outputHeightPx.toFloat(), screen, text)
-            surface.makeImageSnapshot().toBufferedImage()
-        }
+        val s = surface?.takeIf { it.width == outputWidthPx && it.height == outputHeightPx }
+            ?: Surface.makeRasterN32Premul(outputWidthPx, outputHeightPx).also { surface = it }
+        drawScene(s.canvas, outputWidthPx.toFloat(), outputHeightPx.toFloat(), screen, text)
+        return s.makeImageSnapshot().toBufferedImage()
+    }
+
+    override fun close() {
+        surface?.close()
+        surface = null
     }
 
     private fun drawScene(canvas: Canvas, outputWidthPx: Float, outputHeightPx: Float, screen: BufferedImage, text: String) {
