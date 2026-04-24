@@ -71,6 +71,9 @@ class RecordCommand : Callable<Int> {
     @Option(names = ["--local"], description = ["(Beta) Record using local rendering. This will become the default in a future Maestro release."])
     private var local: Boolean = false
 
+    @Option(names = ["--only-on-failure"], description = ["Only render the recording if the Flow fails. The recording is discarded on success."])
+    private var onlyOnFailure: Boolean = false
+
     @Option(names = ["-e", "--env"])
     private var env: Map<String, String> = emptyMap()
 
@@ -164,17 +167,21 @@ class RecordCommand : Callable<Int> {
                     }
                 }
 
-                val frames = resultView.getFrames()
+                if (onlyOnFailure && exitCode == 0) {
+                    screenRecording.delete()
+                } else {
+                    val frames = resultView.getFrames()
 
-                val localOutputFile = outputFile ?: path.resolve("maestro-recording.mp4").toFile()
-                val videoRenderer = if (local) LocalVideoRenderer(
-                    frameRenderer = SkiaFrameRenderer(),
-                    outputFile = localOutputFile,
-                    outputFPS = 25,
-                    outputWidthPx = 1920,
-                    outputHeightPx = 1080,
-                ) else RemoteVideoRenderer()
-                videoRenderer.render(screenRecording, frames)
+                    val localOutputFile = outputFile ?: path.resolve("maestro-recording.mp4").toFile()
+                    val videoRenderer = if (local) LocalVideoRenderer(
+                        frameRenderer = SkiaFrameRenderer(),
+                        outputFile = localOutputFile,
+                        outputFPS = 25,
+                        outputWidthPx = 1920,
+                        outputHeightPx = 1080,
+                    ) else RemoteVideoRenderer()
+                    videoRenderer.render(screenRecording, frames)
+                }
 
                 TestDebugReporter.deleteOldFiles()
 
