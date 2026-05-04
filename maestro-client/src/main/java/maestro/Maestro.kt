@@ -36,8 +36,10 @@ import java.awt.image.BufferedImage
 import java.io.File
 import javax.imageio.ImageIO
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runInterruptible
+import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.yield
 import kotlin.system.measureTimeMillis
 
@@ -66,14 +68,26 @@ class Maestro(
         launchArguments: Map<String, Any> = emptyMap(),
         stopIfRunning: Boolean = true,
         timeout: Long? = null,
-    ) = runInterruptible(Dispatchers.IO) {
-        LOGGER.info("Launching app $appId")
+    ) {
+        val effectiveTimeout = timeout ?: 30000L
+        try {
+            withTimeout(effectiveTimeout) {
+                runInterruptible(Dispatchers.IO) {
+                    LOGGER.info("Launching app $appId")
 
-        if (stopIfRunning) {
-            LOGGER.info("Stopping $appId app during launch")
-            driver.stopApp(appId)
+                    if (stopIfRunning) {
+                        LOGGER.info("Stopping $appId app during launch")
+                        driver.stopApp(appId)
+                    }
+                    driver.launchApp(appId, launchArguments, timeout)
+                }
+                waitForAppToSettle(appId = appId)
+            }
+        } catch (e: TimeoutCancellationException) {
+            throw MaestroException.UnableToLaunchApp(
+                "Unable to launch app $appId within ${effectiveTimeout}ms"
+            )
         }
-        driver.launchApp(appId, launchArguments, timeout)
     }
 
     suspend fun stopApp(appId: String) = runInterruptible(Dispatchers.IO) {

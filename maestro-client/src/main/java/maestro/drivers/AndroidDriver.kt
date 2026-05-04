@@ -40,9 +40,6 @@ import maestro.android.chromedevtools.AndroidWebViewHierarchyClient
 import maestro.device.DeviceOrientation
 import maestro.device.Platform
 import maestro.utils.BlockingStreamObserver
-import kotlinx.coroutines.TimeoutCancellationException
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withTimeout
 import maestro.utils.MaestroTimer
 import maestro.utils.Metrics
 import maestro.utils.MetricsProvider
@@ -213,7 +210,7 @@ class AndroidDriver(
         }
     }
 
-    override fun launchApp(
+override fun launchApp(
         appId: String,
         launchArguments: Map<String, Any>,
         timeout: Long?,
@@ -227,25 +224,13 @@ class AndroidDriver(
             }
 
             val arguments = launchArguments.toAndroidLaunchArguments()
-            val effectiveTimeout = timeout ?: 30000L // Default 30 seconds
-            
-            try {
-                runBlocking {
-                    withTimeout(effectiveTimeout) {
-                        runDeviceCall("launchApp") {
-                            blockingStubWithTimeout.launchApp(
-                                launchAppRequest {
-                                    this.packageName = appId
-                                    this.arguments.addAll(arguments)
-                                }
-                            ) ?: throw IllegalStateException("Maestro driver failed to launch app")
-                        }
+            runDeviceCall("launchApp") {
+                blockingStubWithTimeout.launchApp(
+                    launchAppRequest {
+                        this.packageName = appId
+                        this.arguments.addAll(arguments)
                     }
-                }
-            } catch (e: TimeoutCancellationException) {
-                throw MaestroException.UnableToLaunchApp(
-                    "Unable to launch app $appId within ${effectiveTimeout}ms"
-                )
+                ) ?: throw IllegalStateException("Maestro driver failed to launch app")
             }
         }
     }
