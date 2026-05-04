@@ -210,7 +210,7 @@ class AndroidDriver(
         }
     }
 
-override fun launchApp(
+    override fun launchApp(
         appId: String,
         launchArguments: Map<String, Any>,
         timeout: Long?,
