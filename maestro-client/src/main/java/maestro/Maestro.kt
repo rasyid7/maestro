@@ -69,7 +69,7 @@ class Maestro(
         stopIfRunning: Boolean = true,
         timeout: Long? = null,
     ) {
-        val effectiveTimeout = timeout ?: 15000L
+        val effectiveTimeout = timeout ?: 10000L
         try {
             withTimeout(effectiveTimeout) {
                 runInterruptible(Dispatchers.IO) {
