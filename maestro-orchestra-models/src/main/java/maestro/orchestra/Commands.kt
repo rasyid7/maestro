@@ -546,6 +546,10 @@ data class LaunchAppCommand(
                 result += " (launch arguments: ${launchArguments})"
             }
 
+            if (timeout != null) {
+                result += " (timeout: ${timeout}ms)"
+            }
+
             return result
         }
 

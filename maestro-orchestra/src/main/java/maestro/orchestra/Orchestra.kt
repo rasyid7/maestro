@@ -1170,7 +1170,12 @@ class Orchestra(
             )
         } catch (e: Exception) {
             logger.error("Failed to launch app", e)
-            throw MaestroException.UnableToLaunchApp("Unable to launch app ${command.appId}", cause = e)
+            val message = if (command.timeout != null) {
+                "Unable to launch app ${command.appId} within ${command.timeout}ms"
+            } else {
+                "Unable to launch app ${command.appId}"
+            }
+            throw MaestroException.UnableToLaunchApp(message, cause = e)
         }
 
         return true
