@@ -213,6 +213,7 @@ class AndroidDriver(
     override fun launchApp(
         appId: String,
         launchArguments: Map<String, Any>,
+        timeout: Long?,
     ) {
         metrics.measured("operation", mapOf("command" to "launchApp", "appId" to appId)) {
             if(!open) // pick device flow, no open() invocation

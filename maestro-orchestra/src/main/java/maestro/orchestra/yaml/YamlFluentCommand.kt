@@ -751,6 +751,7 @@ data class YamlFluentCommand(
                 stopApp = command.stopApp,
                 permissions = command.permissions,
                 launchArguments = command.arguments,
+                timeout = command.timeout,
                 label = command.label,
                 optional = command.optional,
             )

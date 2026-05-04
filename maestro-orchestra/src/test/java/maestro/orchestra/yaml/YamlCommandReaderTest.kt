@@ -132,6 +132,21 @@ internal class YamlCommandReaderTest {
     }
 
     @Test
+    fun launchApp_withTimeout(
+        @YamlFile("033_launchApp_withTimeout.yaml") commands: List<Command>,
+    ) {
+        assertThat(commands).containsExactly(
+            ApplyConfigurationCommand(MaestroConfig(
+                appId = "com.example.app",
+            )),
+            LaunchAppCommand(
+                appId = "com.example.app",
+                timeout = 10000L,
+            ),
+        )
+    }
+
+    @Test
     fun backPress_string(
         @YamlFile("018_backPress_string.yaml") commands: List<Command>,
     ) {

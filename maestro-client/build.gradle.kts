@@ -217,3 +217,15 @@ tasks.named<Test>("test") {
 tasks.withType<Jar>().configureEach {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
+
+afterEvaluate {
+    tasks.named("sourcesJar") {
+        dependsOn(":maestro-android:copyMaestroAndroid")
+        dependsOn(":maestro-android:updateMaestroAndroidSourceSentinel")
+    }
+}
+
+tasks.named("checkAndroidApksFresh") {
+    dependsOn(":maestro-android:copyMaestroAndroid")
+    dependsOn(":maestro-android:updateMaestroAndroidSourceSentinel")
+}

@@ -32,6 +32,7 @@ data class YamlLaunchApp(
     val arguments: Map<String, Any>?,
     val label: String? = null,
     val optional: Boolean = false,
+    val timeout: Long? = null,
 ) {
 
     companion object {
@@ -46,6 +47,7 @@ data class YamlLaunchApp(
                 stopApp = null,
                 permissions = null,
                 arguments = null,
+                timeout = null,
             )
         }
     }

@@ -196,6 +196,7 @@ class WebDriver(
     override fun launchApp(
         appId: String,
         launchArguments: Map<String, Any>,
+        timeout: Long?,
     ) {
         injectedArguments = injectedArguments + launchArguments
 

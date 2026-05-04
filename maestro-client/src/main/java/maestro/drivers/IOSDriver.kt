@@ -99,6 +99,7 @@ class IOSDriver(
     override fun launchApp(
         appId: String,
         launchArguments: Map<String, Any>,
+        timeout: Long?,
     ) {
         metrics.measured("operation", mapOf("command" to "launchApp", "appId" to appId)) {
             iosDevice.launch(appId, launchArguments)

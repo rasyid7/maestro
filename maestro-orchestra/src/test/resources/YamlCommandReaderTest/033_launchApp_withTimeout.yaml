@@ -1,0 +1,4 @@
+appId: com.example.app
+---
+- launchApp:
+    timeout: 10000
