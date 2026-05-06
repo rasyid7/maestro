@@ -1,4 +1,14 @@
 # Changelog
+## Custom
+
+## 2.5.1-kmk
+
+- Feature: Add browserAlert: accept|dismiss command
+- Feature: Add Sleep command
+- fix tags include from OR to AND
+- fix waitToSettleTimeoutMs not wait for settle for faster commands
+- Feature: Add --only-on-failure flag on maestro record
+- Improve: maestro recording render speed
 
 ## Unreleased
 
