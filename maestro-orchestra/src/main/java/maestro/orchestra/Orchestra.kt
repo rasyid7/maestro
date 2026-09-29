@@ -51,6 +51,7 @@ import maestro.orchestra.debug.ArtifactCollector
 import maestro.orchestra.debug.CommandOutcome
 import maestro.orchestra.debug.FlowDebugOutput
 import maestro.orchestra.debug.OrchestraListener
+import maestro.orchestra.debug.startScreenRecordingInto
 import maestro.orchestra.filter.FilterWithDescription
 import maestro.orchestra.filter.TraitFilters
 import maestro.orchestra.geo.Traveller
@@ -1239,7 +1240,9 @@ class Orchestra(
         val outFile = artifactsGenerator
             .allocateCommandArtifact(ArtifactKind.START_SCREEN_RECORDING, "${command.path}.mp4", "startRecording")
             ?: File("${command.path}.mp4")
-        screenRecording = maestro.startScreenRecording(artifactSink(outFile, command.path, "startRecording"))
+        // Null when a recording is already running (this flow's, or the full-run one).
+        maestro.startScreenRecordingInto(artifactSink(outFile, command.path, "startRecording"), outFile)
+            ?.let { screenRecording = it }
         return false
     }
 

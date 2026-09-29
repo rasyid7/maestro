@@ -35,6 +35,7 @@ import okio.use
 import org.slf4j.LoggerFactory
 import java.awt.image.BufferedImage
 import java.io.File
+import java.time.Instant
 import javax.imageio.ImageIO
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -676,23 +677,27 @@ class Maestro(
         }
     }
 
-    suspend fun startScreenRecording(out: Sink): ScreenRecording {
+    /* Starts recording the screen into [out]. Returns null, and writes nothing, when a recording is already in progress on this instance. */
+    suspend fun startScreenRecording(out: Sink): ScreenRecording? {
         LOGGER.info("Starting screen recording")
 
         if (screenRecordingInProgress) {
             LOGGER.info("Screen recording not started: Already in progress")
-            return object : ScreenRecording {
-                override fun close() {
-                    // No-op
-                }
-            }
+            return null
         }
         screenRecordingInProgress = true
 
         LOGGER.info("Starting screen recording")
-        val screenRecording = runInterruptible(Dispatchers.IO) { driver.startScreenRecording(out) }
+        val screenRecording = try {
+            runInterruptible(Dispatchers.IO) { driver.startScreenRecording(out) }
+        } catch (e: Exception) {
+            screenRecordingInProgress = false
+            throw e
+        }
         val startTimestamp = System.currentTimeMillis()
         return object : ScreenRecording {
+            override val startedAt: Instant = screenRecording.startedAt
+
             override fun close() {
                 LOGGER.info("Stopping screen recording")
                 // Ensure minimum screen recording duration of 3 seconds.
@@ -701,8 +706,12 @@ class Maestro(
                 if (durationPadding > 0) {
                     Thread.sleep(durationPadding)
                 }
-                screenRecording.close()
-                screenRecordingInProgress = false
+                try {
+                    screenRecording.close()
+                } finally {
+                    // A stop that fails must not wedge every later recording on this instance.
+                    screenRecordingInProgress = false
+                }
             }
         }
     }
