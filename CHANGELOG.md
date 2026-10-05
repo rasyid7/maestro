@@ -1,4 +1,15 @@
 # Changelog
+## Custom
+
+## 2.11.0-kmk
+
+- Feature: Add browserAlert: accept|dismiss command
+- Feature: Add Sleep command
+- Feature: Dynamic sharding (`--shard-split` shards pull flows from a shared queue)
+- fix tags include from OR to AND
+- fix waitToSettleTimeoutMs not wait for settle for faster commands (< 150ms skips settle before and after tap)
+- Feature: Add --only-on-failure flag on maestro record
+- Improve: maestro recording render speed
 
 ## Unreleased
 
